@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mapa de Evidencia en Cannabis Medicinal — Instituto de Evaluación Tecnológica en Salud</title>
+<meta name="description" content="Mapa interactivo de evidencia científica disponible sobre cannabis medicinal: intervenciones, desenlaces, nivel de certeza GRADE y vacíos de investigación. Desarrollado por el Instituto de Evaluación Tecnológica en Salud.">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mapa de Evidencia en Cannabis Medicinal — Instituto de Evaluación Tecnológica en Salud">
+<meta property="og:description" content="Explora qué formulaciones y cannabinoides cuentan con evidencia clínica contrastada, para qué patologías y con qué nivel de certeza metodológica.">
+<meta property="og:url" content="">
+<meta property="og:image" content="">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23003189'/><circle cx='12' cy='13' r='5' fill='%23289E93'/><circle cx='21' cy='20' r='6' fill='%23EAA000'/></svg>">
+</head>
+<body>
+<a class="salto-contenido" href="#mapa">Ir al mapa de evidencia</a>
+
+<header class="masthead">
+  <div class="contenedor masthead__interior">
+    <a class="marca" href="/">
+      <div class="marca__simbolo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </div>
+      <div class="marca__textos">
+        <span class="marca__nombre">Instituto de Evaluación Tecnológica en Salud</span>
+        <span class="marca__sub">Sistema de Evidencia Científica · Cannabis Medicinal</span>
+      </div>
+    </a>
+    <nav aria-label="Secciones de navegación">
+      <a href="#mapa" class="activo" data-tab="mapa">Mapa interactivo</a>
+      <a href="#documentacion" data-tab="documentacion">Documentación</a>
+      <a href="#acerca" data-tab="acerca">Cómo leerlo</a>
+      <a href="/admin">Administración</a>
+    </nav>
+  </div>
+</header>
+
+<!-- =========================================================================
+     VISTA 1: MAPA INTERACTIVO (Sin scroll de documentación debajo)
+     ========================================================================= -->
+<div id="vista-mapa" class="vista-seccion" role="tabpanel" aria-labelledby="tab-mapa">
+
+<section class="intro">
+  <div class="contenedor">
+    <div class="intro__grid">
+      <div>
+        <h1>Mapa de evidencia en cannabis medicinal</h1>
+        <p class="intro__texto">
+          Matriz bidimensional que cruza intervenciones terapéuticas con desenlaces clínicos en salud. El tamaño de los círculos indica el volumen de literatura indexada; los colores diferencian revisiones sistemáticas de estudios primarios; y las celdas rayadas señalan vacíos de investigación. Haz clic en cualquier celda para consultar los estudios.
+        </p>
+      </div>
+
+      <div class="cifras" id="cifras" aria-live="polite">
+        <div class="cifra">
+          <div class="cifra__valor" id="cifra-estudios">—</div>
+          <div class="cifra__rotulo">Estudios en el mapa</div>
+        </div>
+        <div class="cifra">
+          <div class="cifra__valor" id="cifra-sintesis">—</div>
+          <div class="cifra__rotulo">Síntesis de evidencia</div>
+        </div>
+        <div class="cifra">
+          <div class="cifra__valor" id="cifra-primarios">—</div>
+          <div class="cifra__rotulo">Estudios primarios</div>
+        </div>
+        <div class="cifra">
+          <div class="cifra__valor" id="cifra-vacios">—</div>
+          <div class="cifra__rotulo" id="rotulo-vacios">Celdas sin evidencia</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="aviso" role="note">
+      <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.8 10.6H7.2v-1.6h1.6v1.6zm0-2.8H7.2V4.4h1.6v4.4z"/></svg>
+      <div>
+        <strong>Base de conocimiento activa.</strong> Los registros iniciales sintetizan la literatura científica de mayor impacto y rigor metodológico en el campo. Cada ficha técnica incluye nivel de certeza GRADE, resumen estructurado y enlace directo a la fuente primaria (PubMed / DOI).
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Barra de Filtros y Búsqueda Multidimensional -->
+<div class="filtros">
+  <div class="contenedor">
+    <div class="filtros__fila">
+      <div class="buscador">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+        <label class="salto-contenido" for="q">Buscar en el mapa</label>
+        <input type="search" id="q" placeholder="Buscar por título, autoría, indicación o fuente…" autocomplete="off">
+      </div>
+
+      <details class="desplegable" data-filtro="tipo_estudio">
+        <summary>Tipo de estudio <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <details class="desplegable" data-filtro="certeza">
+        <summary>Certeza GRADE <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <details class="desplegable" data-filtro="hallazgo">
+        <summary>Dirección del hallazgo <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <details class="desplegable" data-filtro="poblacion">
+        <summary>Población <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <details class="desplegable" data-filtro="ambito">
+        <summary>Ámbito geográfico <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <details class="desplegable" data-filtro="decada">
+        <summary>Periodo <span class="cuenta" hidden>0</span></summary>
+        <div class="desplegable__panel"></div>
+      </details>
+
+      <div class="segmentado" role="group" aria-label="Modo de visualización de la matriz">
+        <button type="button" data-vista="burbujas" aria-pressed="true">Burbujas</button>
+        <button type="button" data-vista="calor" aria-pressed="false">Densidad</button>
+        <button type="button" data-vista="certeza" aria-pressed="false">Certeza máxima</button>
+      </div>
+
+      <button type="button" class="boton boton--suave" id="btn-vacios" aria-pressed="false">Resaltar vacíos</button>
+      <button type="button" class="boton boton--suave" id="btn-exportar">Exportar CSV</button>
+      <button type="button" class="boton boton--fantasma" id="btn-limpiar">Limpiar filtros</button>
+    </div>
+    <div class="chips" id="chips-activos"></div>
+  </div>
+</div>
+
+<!-- Visualización Principal: Matriz de Evidencia -->
+<main id="mapa">
+  <div class="contenedor">
+    <div class="leyenda" aria-hidden="false">
+      <div class="leyenda__grupo">
+        <span class="punto punto--sintesis" style="width:14px;height:14px"></span>
+        <span><b>Síntesis de evidencia:</b> Revisiones sistemáticas con metaanálisis, revisiones Cochrane, GPC y ETS.</span>
+      </div>
+      <div class="leyenda__grupo">
+        <span class="punto punto--primario" style="width:14px;height:14px"></span>
+        <span><b>Estudios primarios:</b> Ensayos clínicos aleatorizados (ECA), observacionales y evaluaciones económicas.</span>
+      </div>
+      <div class="leyenda__grupo escala">
+        <span>Menor volumen</span>
+        <span class="punto" style="width:8px;height:8px"></span>
+        <span class="punto" style="width:14px;height:14px"></span>
+        <span class="punto" style="width:22px;height:22px"></span>
+        <span>Mayor volumen de estudios</span>
+      </div>
+    </div>
+
+    <div class="tarjeta-mapa">
+      <div class="mapa-scroll" id="mapa-scroll">
+        <div class="cargando" id="estado-carga">
+          Cargando y procesando la evidencia clínica…
+          <div class="barra-carga"><span></span></div>
+        </div>
+        <div class="matriz" id="matriz" role="group" aria-label="Matriz de intervenciones por desenlaces. Navega con el cursor o el teclado sobre cada intersección." hidden></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+  <footer class="pie">
+    <div class="contenedor pie__interior">
+      <div>Instituto de Evaluación Tecnológica en Salud — IETS · Bogotá, Colombia</div>
+      <div>
+        <button type="button" class="enlace-pie" data-ir-tab="documentacion">Documentación técnica</button>
+        <button type="button" class="enlace-pie" data-ir-tab="acerca">Cómo leerlo</button>
+        <a href="/admin">Panel de administración</a>
+      </div>
+    </div>
+  </footer>
+</div> <!-- Fin de #vista-mapa -->
+
+<!-- =========================================================================
+     VISTA 2: DOCUMENTACIÓN TÉCNICA (Pestaña independiente sin scroll en el mapa)
+     ========================================================================= -->
+<div id="vista-documentacion" class="vista-seccion" role="tabpanel" aria-labelledby="tab-documentacion" hidden>
+
+  <div class="doc-header-bar">
+    <div class="contenedor doc-header-bar__interior">
+      <div>
+        <span class="doc-badge">Documento Técnico Oficial</span>
+        <h1 class="doc-titulo">Documentación del Mapa de Evidencia</h1>
+        <p class="doc-subtitulo">Arquitectura taxonómica, marco metodológico GRADE, síntesis clínica de 55 estudios, vacíos identificados y marco regulatorio colombiano.</p>
+      </div>
+      <button type="button" class="boton btn-volver-mapa" data-ir-tab="mapa">
+        ← Volver al mapa interactivo
+      </button>
+    </div>
+  </div>
+
+  <section class="documentacion" id="documentacion">
+    <div class="contenedor">
+      <div class="doc-layout">
+      <!-- Menú lateral de navegación de la documentación -->
+      <aside class="doc-sidebar" aria-label="Índice de la documentación">
+        <h3>Contenido</h3>
+        <nav class="doc-nav">
+          <a href="#doc-introduccion" class="activo">1. Propósito y Alcance</a>
+          <a href="#doc-taxonomia">2. Taxonomía de Intervenciones</a>
+          <a href="#doc-desenlaces">3. Dominios de Desenlace</a>
+          <a href="#doc-tipologia">4. Tipología y Jerarquía</a>
+          <a href="#doc-grade">5. Certeza GRADE y Hallazgos</a>
+          <a href="#doc-evidencia">6. Evidencia Clínica Actual</a>
+          <a href="#doc-vacios">7. Vacíos de Investigación</a>
+          <a href="#doc-normativa">8. Marco Normativo en Colombia</a>
+          <a href="#doc-guia">9. Guía de Interacción</a>
+        </nav>
+      </aside>
+
+      <!-- Contenido estructurado con evidencia -->
+      <div class="doc-contenido">
+        <!-- 1. Propósito y Alcance -->
+        <article class="doc-seccion" id="doc-introduccion">
+          <h3>1. Propósito y Alcance del Mapa</h3>
+          <p>
+            El <strong>Mapa de Evidencia en Cannabis Medicinal</strong> es un instrumento interactivo desarrollado bajo el estándar metodológico de los <em>Evidence and Gap Maps (EGM)</em> promovido por organismos internacionales como Campbell Collaboration y 3ie. Su finalidad es sistematizar la totalidad de la literatura biomédica disponible sobre derivados de la planta de cannabis y sus aplicaciones terapéuticas, organizándola en una matriz visual cruzada de intervenciones versus desenlaces clínicos.
+          </p>
+          <div class="doc-card">
+            <h4>Objetivos Sanitarios y Científicos</h4>
+            <ul>
+              <li><strong>Soporte a la decisión clínica informada:</strong> Proporcionar a médicos especialistas, prescriptores y pacientes una panorámica transparente sobre dónde existe beneficio terapéutico comprobado y dónde la evidencia es deficiente o ausente.</li>
+              <li><strong>Orientación para la formulación de políticas públicas:</strong> Respaldar decisiones de cobertura, incorporación al Plan de Beneficios en Salud (PBS) y protocolos de priorización regulatoria por parte del Ministerio de Salud y Protección Social y el Invima.</li>
+              <li><strong>Direccionamiento de la investigación biomédica:</strong> Identificar con exactitud los vacíos de conocimiento (celdas sin estudios) para priorizar la asignación de recursos en nuevos ensayos clínicos y estudios de vida real.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- 2. Taxonomía de Intervenciones -->
+        <article class="doc-seccion" id="doc-taxonomia">
+          <h3>2. Taxonomía de Intervenciones (Filas del Mapa)</h3>
+          <p>
+            El mapa clasifica las intervenciones en cuatro grandes categorías (C1 a C4) que abarcan trece intervenciones específicas (I1 a I13), distinguiendo estrictamente los fármacos con registro de las preparaciones magistrales y las medidas de gobernanza sanitaria:
+          </p>
+          <table class="tabla-doc">
+            <thead>
+              <tr>
+                <th style="width:15%">Código</th>
+                <th style="width:35%">Categoría / Intervención</th>
+                <th style="width:50%">Descripción Farmacológica y Regulatoria</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>C1 · I1</strong></td>
+                <td><strong>Cannabidiol purificado (grado farmacéutico)</strong></td>
+                <td>CBD altamente purificado (&gt;98% de pureza, ej. Epidiolex) en solución oral. Indicado como coadyuvante en encefalopatías epilépticas farmacorresistentes (Dravet, Lennox-Gastaut, Complejo de Esclerosis Tuberosa).</td>
+              </tr>
+              <tr>
+                <td><strong>C1 · I2</strong></td>
+                <td><strong>Nabiximoles (THC:CBD 1:1 oromucoso)</strong></td>
+                <td>Extracto estandarizado en spray oromucoso con proporción equimolar aproximada (2.7 mg THC y 2.5 mg CBD por pulsación; ej. Sativex). Indicado en espasticidad por esclerosis múltiple resistente a fármacos convencionales.</td>
+              </tr>
+              <tr>
+                <td><strong>C1 · I3</strong></td>
+                <td><strong>Dronabinol (THC sintético)</strong></td>
+                <td>Isómero sintético trans-Δ9-THC en cápsulas o solución oral (ej. Marinol, Syndros). Indicado en náuseas y vómitos inducidos por quimioterapia refractarios y anorexia/caquexia en personas con VIH/SIDA.</td>
+              </tr>
+              <tr>
+                <td><strong>C1 · I4</strong></td>
+                <td><strong>Nabilona (análogo sintético)</strong></td>
+                <td>Cannabinoide sintético oral análogo al THC (ej. Cesamet). Potencia significativamente mayor que el THC natural, estudiado en profilaxis antiemética y dolor neuropático crónico.</td>
+              </tr>
+              <tr>
+                <td><strong>C2 · I5</strong></td>
+                <td><strong>Extracto con predominio de THC</strong></td>
+                <td>Fórmulas magistrales estandarizadas con ratio THC:CBD alto (&gt;5:1 o solo THC), dosificadas por vía oral en dolor oncológico refractario o cuidados paliativos.</td>
+              </tr>
+              <tr>
+                <td><strong>C2 · I6</strong></td>
+                <td><strong>Extracto con predominio de CBD</strong></td>
+                <td>Fórmulas magistrales con ratio CBD:THC alto (&gt;10:1 o solo CBD), utilizadas fuera de indicación formal en patologías inflamatorias, ansiedad y trastornos convulsivos no cubiertos por C1.</td>
+              </tr>
+              <tr>
+                <td><strong>C2 · I7</strong></td>
+                <td><strong>Extracto balanceado THC:CBD</strong></td>
+                <td>Preparaciones magistrales con proporciones comparables de ambos fitocannabinoides (~1:1 a 1:2), distintas de los productos fitofarmacéuticos con registro formal.</td>
+              </tr>
+              <tr>
+                <td><strong>C2 · I8</strong></td>
+                <td><strong>Fórmula magistral de espectro completo</strong></td>
+                <td>Aceites y extractos crudos o descarboxilados que preservan el perfil fitoquímico nativo de cannabinoides menores (CBG, CBN, CBC) y terpenos (efecto séquito hipotético).</td>
+              </tr>
+              <tr>
+                <td><strong>C3 · I9</strong></td>
+                <td><strong>Cannabis vaporizado</strong></td>
+                <td>Inhalación de vapor mediante calentamiento controlado de inflorescencias o concentrados a 180-210°C, minimizando la generación de hidrocarburos aromáticos policíclicos. Rápida absorción pulmonar.</td>
+              </tr>
+              <tr>
+                <td><strong>C3 · I10</strong></td>
+                <td><strong>Cannabis fumado (combustión)</strong></td>
+                <td>Inhalación por combustión directa de la flor seca. Es la vía más evaluada en ensayos clínicos iniciales de analgesia en dolor neuropático, pero con toxicidad respiratoria demostrada.</td>
+              </tr>
+              <tr>
+                <td><strong>C3 · I11</strong></td>
+                <td><strong>Formulaciones tópicas y transdérmicas</strong></td>
+                <td>Geles, cremas y parches de absorción dérmica local o transdérmica sistémica continua, con baja biodisponibilidad cerebral y menor riesgo de efectos psicotrópicos.</td>
+              </tr>
+              <tr>
+                <td><strong>C4 · I12</strong></td>
+                <td><strong>Programas de acceso regulado y registros</strong></td>
+                <td>Medidas de política pública y farmacovigilancia activa (cohortes observacionales sistemáticas en países como Canadá, Alemania, Israel y Colombia).</td>
+              </tr>
+              <tr>
+                <td><strong>C4 · I13</strong></td>
+                <td><strong>Formación y guías para prescriptores</strong></td>
+                <td>Intervenciones educativas y algoritmos de prescripción orientados a mitigar eventos adversos, sobredotación e interacciones farmacológicas en la práctica médica.</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- 3. Dominios de Desenlace -->
+        <article class="doc-seccion" id="doc-desenlaces">
+          <h3>3. Dominios y Desenlaces en Salud (Columnas del Mapa)</h3>
+          <p>
+            El mapa contempla 15 desenlaces en salud agrupados en cuatro dominios clave (D1 a D4), permitiendo evaluar tanto la efectividad terapéutica como la carga de toxicidad e impacto socioeconómico:
+          </p>
+          <div class="doc-grid-2">
+            <div class="doc-card">
+              <h4>D1 · Eficacia Clínica</h4>
+              <ul>
+                <li><strong>O1 Dolor crónico:</strong> Reducción clínicamente relevante (&ge;30% y &ge;50%) en escalas visuales analógicas (EVA/NRS) en dolor de origen neuropático, musculoesquelético u oncológico.</li>
+                <li><strong>O2 Espasticidad:</strong> Disminución del tono muscular y espasmos medidos mediante la Escala de Ashworth Modificada o escalas numéricas autoinformadas por el paciente.</li>
+                <li><strong>O3 Náusea y vómito:</strong> Control de emesis aguda y tardía inducida por quimioterapia citotóxica (CINV).</li>
+                <li><strong>O4 Crisis epilépticas:</strong> Disminución en la frecuencia mensual de crisis convulsivas mayores (atónicas, tónico-clónicas).</li>
+                <li><strong>O5 Apetito y peso:</strong> Modificaciones en ingesta calórica y antropometría en síndromes de desgaste asociados a VIH o cáncer.</li>
+                <li><strong>O6 Sueño:</strong> Latencia del sueño, continuidad y arquitectura del descanso en dolor crónico.</li>
+                <li><strong>O7 Ansiedad, depresión y TEPT:</strong> Impacto sobre escalas psicométricas estandarizadas (GAD-7, PHQ-9, CAPS-5).</li>
+                <li><strong>O8 Movimientos anormales:</strong> Severidad de tics en síndrome de Tourette, temblor y discinesias inducidas por levodopa.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h4>D2 · Calidad de Vida | D3 · Seguridad | D4 · Sistema de Salud</h4>
+              <ul>
+                <li><strong>O9 Calidad de vida:</strong> Medición mediante cuestionarios validados (EQ-5D, SF-36, EORTC QLQ-C30).</li>
+                <li><strong>O10 Funcionalidad:</strong> Desempeño físico, retorno laboral y capacidad funcional en actividades diarias.</li>
+                <li><strong>O11 Eventos adversos:</strong> Incidencia de eventos adversos totales, eventos graves (SAE) y retiros debidos a toxicidad.</li>
+                <li><strong>O12 Efectos psiquiátricos y cognitivos:</strong> Episodios psicóticos, disforia, sedación profunda y deterioro de memoria ejecutiva.</li>
+                <li><strong>O13 Dependencia y accidentes:</strong> Desarrollo de trastorno por uso de cannabis (CUD), síndrome de abstinencia y caídas/accidentes.</li>
+                <li><strong>O14 Ahorro de otros fármacos:</strong> Efecto ahorrador de opioides (opioid-sparing), benzodiazepinas y antiepilépticos concomitantes.</li>
+                <li><strong>O15 Costos y uso de servicios:</strong> Evaluaciones de costo-efectividad, impacto presupuestal y uso de urgencias.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- 4. Tipología y Jerarquía -->
+        <article class="doc-seccion" id="doc-tipologia">
+          <h3>4. Jerarquía de la Evidencia y Tipología de Estudios</h3>
+          <p>
+            El sistema clasifica las publicaciones en dos ejes visuales mutuamente excluyentes, facilitando la distinción inmediata entre estudios individuales y síntesis consolidadas:
+          </p>
+          <div class="doc-grid-2">
+            <div class="doc-card" style="border-left: 4px solid var(--primary);">
+              <h4>Círculo Índigo · Síntesis de Evidencia</h4>
+              <p>
+                Abarca los niveles superiores de la pirámide de la evidencia biomédica. Incluye:
+              </p>
+              <ul>
+                <li><strong>Revisiones sistemáticas con metaanálisis:</strong> Agregación cuantitativa con valoración de heterogeneidad (ej. Whiting et al., JAMA 2015; Bilbao & Spanagel, BMC Med 2022).</li>
+                <li><strong>Revisiones sistemáticas sin metaanálisis y revisiones de revisiones:</strong> Mapeo exhaustivo de literatura con criterios PRISMA.</li>
+                <li><strong>Guías de Práctica Clínica (GPC):</strong> Recomendaciones formuladas por paneles multidisciplinarios basadas en evidencia GRADE.</li>
+                <li><strong>Evaluaciones de Tecnología Sanitaria (ETS):</strong> Informes comprehensivos de efectividad, seguridad, costo-efectividad y aspectos ético-organizacionales.</li>
+              </ul>
+            </div>
+            <div class="doc-card" style="border-left: 4px solid var(--primario);">
+              <h4>Círculo Azul / Celeste · Estudios Primarios</h4>
+              <p>
+                Investigaciones experimentales u observacionales que generan datos directos de pacientes:
+              </p>
+              <ul>
+                <li><strong>Ensayos Clínicos Aleatorizados (ECA):</strong> Diseños doble ciego controlados con placebo, estándar de oro para probar eficacia farmacológica aislada (ej. Devinsky et al., NEJM 2017; Nurmikko et al., Neurology 2007).</li>
+                <li><strong>Ensayos clínicos no aleatorizados:</strong> Estudios cuasi-experimentales y de etiqueta abierta.</li>
+                <li><strong>Estudios observacionales analíticos:</strong> Cohortes prospectivas, estudios de registro de pacientes y análisis transversales en condiciones de vida real.</li>
+                <li><strong>Evaluaciones económicas:</strong> Modelos de costo-utilidad, costo-efectividad y análisis de impacto presupuestal.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- 5. Sistema GRADE y Hallazgos -->
+        <article class="doc-seccion" id="doc-grade">
+          <h3>5. Sistema de Certeza GRADE y Dirección de los Hallazgos</h3>
+          <p>
+            La certeza de la evidencia asignada a cada estudio refleja la confianza metodológica en que la estimación del efecto observada sea fiel a la realidad, evaluando riesgo de sesgo, inconsistencia, imprecisión, carácter indirecto y sesgo de publicación:
+          </p>
+          <table class="tabla-doc">
+            <thead>
+              <tr>
+                <th style="width:20%">Nivel GRADE</th>
+                <th style="width:40%">Definición Operativa</th>
+                <th style="width:40%">Implicación Clínica y de Política</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="etiqueta etiqueta--sintesis" style="background:#3730A3;color:#fff;">Alta</span></td>
+                <td>Existe una confianza muy alta en que el verdadero efecto se encuentre muy cercano al efecto estimado en los estudios.</td>
+                <td>Es sumamente improbable que nuevas investigaciones cambien la confianza en el efecto terapéutico. Base sólida para recomendaciones fuertes.</td>
+              </tr>
+              <tr>
+                <td><span class="etiqueta etiqueta--sintesis" style="background:#6366F1;color:#fff;">Moderada</span></td>
+                <td>Existe confianza moderada en el efecto estimado; el verdadero efecto probablemente sea cercano, pero existe la posibilidad de que sea sustancialmente diferente.</td>
+                <td>Nuevas investigaciones podrían tener un impacto importante en la estimación del efecto. Recomendación condicional viable.</td>
+              </tr>
+              <tr>
+                <td><span class="etiqueta" style="background:#DBEAFE;color:#1E40AF;">Baja</span></td>
+                <td>La confianza en la estimación del efecto es limitada; el verdadero efecto podría ser sustancialmente distinto al efecto reportado.</td>
+                <td>Es muy probable que investigaciones adicionales modifiquen la dirección o magnitud del efecto. Se sugiere uso experimental o compasivo.</td>
+              </tr>
+              <tr>
+                <td><span class="etiqueta" style="background:#FEE2E2;color:#991B1B;">Muy baja</span></td>
+                <td>Cualquier estimación del efecto es altamente incierta y presenta sesgos sustanciales o muestras insuficientes.</td>
+                <td>No es posible extraer conclusiones terapéuticas válidas.</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="doc-card">
+            <h4>Dirección del Hallazgo Reportado</h4>
+            <ul>
+              <li><strong>Favorable:</strong> Demostración de superioridad estadísticamente significativa y clínicamente relevante del cannabinoide frente al placebo o comparador activo en el desenlace analizado.</li>
+              <li><strong>Mixto / Incierto:</strong> Beneficio demostrado únicamente en subgrupos específicos, disparidad entre desenlaces primarios y secundarios, o mejoría clínica acompañada de un incremento relevante de abandonos por toxicidad.</li>
+              <li><strong>Sin diferencia:</strong> Ausencia de diferencia estadísticamente significativa con respecto al placebo o tratamiento estándar.</li>
+              <li><strong>Desfavorable:</strong> Resultados que muestran incremento de eventos adversos, deterioro del síntoma o balance riesgo-beneficio negativo.</li>
+              <li><strong>No concluyente:</strong> Datos descriptivos sin poder estadístico para emitir un juicio definitivo.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- 6. Evidencia Clínica Actual -->
+        <article class="doc-seccion" id="doc-evidencia">
+          <h3>6. Resumen de Evidencia Clínica Consolidada (55 Estudios)</h3>
+          <p>
+            A continuación se detallan los hallazgos con base en la literatura pionera y las revisiones sistemáticas integradas en la base de datos del mapa:
+          </p>
+
+          <div class="doc-card">
+            <h4>A. Epilepsias Farmacorresistentes (Certeza Alta a Moderada)</h4>
+            <p>
+              El área con la evidencia más sólida corresponde al <strong>Cannabidiol purificado (I1, Epidiolex)</strong> como terapia añadida en pacientes pediátricos y adultos jóvenes con <em>Síndrome de Dravet</em>, <em>Síndrome de Lennox-Gastaut</em> y <em>Complejo de Esclerosis Tuberosa</em>.
+            </p>
+            <ul>
+              <li><strong>Ensayos pivotales:</strong> Devinsky et al. (<em>NEJM 2017</em>, n=120) y Thiele et al. (<em>Lancet 2018</em>, n=225) evidenciaron una reducción mediana del 39-43% en crisis convulsivas frente al 13-17% con placebo (p&lt;0.01).</li>
+              <li><strong>Revisiones sistemáticas:</strong> Lattanzi et al. (<em>Drugs 2018</em>; <em>Epilepsia 2020</em>) confirmaron un riesgo relativo de respuesta &ge;50% de 1.76 (IC 95%: 1.30 a 2.38).</li>
+              <li><strong>Seguridad:</strong> Se reporta elevación asintomática de transaminasas hepáticas, particularmente en presencia de valproato sódico concomitante, lo que exige monitoreo periódico de función hepática.</li>
+            </ul>
+          </div>
+
+          <div class="doc-card">
+            <h4>B. Dolor Crónico Neuropático (Certeza Moderada)</h4>
+            <p>
+              Los extractos balanceados THC:CBD (<strong>Nabiximoles I2</strong> y <strong>extractos balanceados I7</strong>), así como formulaciones orales sintéticas, han demostrado una reducción moderada del dolor neuropático de diversas etiologías (neuropatía periférica diabética, neuralgia postherpética, lesión de médula espinal).
+            </p>
+            <ul>
+              <li><strong>Metaanálisis clave:</strong> Whiting et al. (<em>JAMA 2015</em>) analizó 28 ensayos clínicos de dolor crónico, encontrando un aumento estadísticamente significativo en las tasas de alivio del dolor &ge;30% (OR 1.41; IC 95%: 0.99 a 2.00). Stockings et al. (<em>Pain 2018</em>) identificó que el Número Necesario para Tratar (NNT) para reducción del 30% del dolor se sitúa en 24 (IC 95%: 15 a 61).</li>
+              <li><strong>Eventos adversos:</strong> Mareo (OR 5.0), somnolencia (OR 2.8) y sedación fueron los eventos adversos más frecuentes, requiriendo titulación lenta de dosis.</li>
+            </ul>
+          </div>
+
+          <div class="doc-card">
+            <h4>C. Espasticidad en Esclerosis Múltiple (Certeza Moderada)</h4>
+            <p>
+              El uso de <strong>Nabiximoles (spray oromucoso 1:1)</strong> cuenta con respaldo consistente para pacientes con esclerosis múltiple que no logran control adecuado con antiespásticos orales de primera línea (baclofeno, tizanidina).
+            </p>
+            <ul>
+              <li><strong>Ensayos representativos:</strong> Novotna et al. (<em>Eur J Neurol 2011</em>, ensayo enriquecido con n=572) demostró respuesta sostenida en el 74% de los respondedores iniciales, con reducción significativa en la escala numérica de espasticidad (NRS).</li>
+              <li><strong>Directrices internacionales:</strong> Respaldado por guías de la Academia Americana de Neurología (AAN) y el Instituto Nacional de Excelencia en Salud y Atención del Reino Unido (NICE).</li>
+            </ul>
+          </div>
+
+          <div class="doc-card">
+            <h4>D. Náuseas y Vómitos por Quimioterapia (Certeza Moderada a Baja)</h4>
+            <p>
+              Los análogos sintéticos del THC, <strong>Dronabinol (I3)</strong> y <strong>Nabilona (I4)</strong>, demostraron superioridad frente a placebo en ensayos clínicos tempranos (Phillips et al., <em>Cochrane Database Syst Rev 2016</em>). Sin embargo, su posicionamiento clínico actual es de <em>segunda línea</em> frente a los antagonistas de receptores 5-HT3 (ondansetrón) y NK1 (aprepitant), reservándose para emesis refractaria debida a efectos psicotrópicos indeseados.
+            </p>
+          </div>
+
+          <div class="doc-card">
+            <h4>E. Trastornos Neuropsiquiátricos y Salud Mental (Certeza Baja a Muy Baja)</h4>
+            <p>
+              Para condiciones como trastorno de ansiedad generalizada, trastorno por estrés postraumático (TEPT), depresión mayor e insomnio, la evidencia científica es heterogénea y de certeza metodológica baja o no concluyente.
+            </p>
+            <ul>
+              <li><strong>Revisión sistemática de referencia:</strong> Black et al. (<em>Lancet Psychiatry 2019</em>, 83 estudios con n=3051 participantes) concluyó que existe escasa evidencia rigurosa para recomendar cannabinoides medicinales en el tratamiento de trastornos mentales, alertando sobre el riesgo de psicosis y dependencia en poblaciones vulnerables.</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- 7. Vacíos de Investigación -->
+        <article class="doc-seccion" id="doc-vacios">
+          <h3>7. Análisis de Vacíos Críticos de Investigación (Research Gaps)</h3>
+          <p>
+            Las celdas rayadas de la matriz señalan cruces donde no existen ensayos clínicos o síntesis robustas publicadas. Los vacíos más prioritarios identificados en el mapa son:
+          </p>
+          <div class="doc-grid-2">
+            <div class="doc-card">
+              <h4>Brechas Farmacológicas y de Formulación</h4>
+              <ul>
+                <li><strong>Fórmulas magistrales y aceites artesanales (I8):</strong> Ausencia casi total de ensayos clínicos controlados sobre productos no estandarizados de espectro completo, impidiendo corroborar el supuesto «efecto séquito».</li>
+                <li><strong>Flor fumada o vaporizada a largo plazo (I9, I10):</strong> Falta de seguimiento sobre impacto pulmonar, remodelación de vías aéreas y riesgo cardiovascular a mediano y largo plazo.</li>
+                <li><strong>Vías tópicas y transdérmicas (I11):</strong> Insuficiencia de datos farmacocinéticos y clínicos en artritis y afecciones dermatológicas inflamatorias.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h4>Brechas de Desenlaces y Sistema Sanitario</h4>
+              <ul>
+                <li><strong>Ahorro y sustitución de opioides (O14):</strong> Evidencia observacional controvertida; escasez de ensayos clínicos aleatorizados que demuestren reducción segura del uso de opioides en dolor crónico no oncológico.</li>
+                <li><strong>Costos y evaluaciones económicas (O15):</strong> Gran vacío en estudios de costo-efectividad adaptados a los precios locales de tecnologías sanitarias y presupuestos de salud en Colombia y Latinoamérica.</li>
+                <li><strong>Desenlaces neurocognitivos a largo plazo (O12, O13):</strong> Carencia de cohortes prospectivas que monitoreen el desarrollo de tolerancia, trastorno por uso y efectos sobre la memoria operativa tras años de uso terapéutico continuo.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <!-- 8. Marco Normativo en Colombia -->
+        <article class="doc-seccion" id="doc-normativa">
+          <h3>8. Marco Normativo y Regulatorio en Colombia</h3>
+          <p>
+            Colombia cuenta con uno de los esquemas regulatorios más estructurados y completos para el uso médico e industrial del cannabis y sus derivados:
+          </p>
+          <table class="tabla-doc">
+            <thead>
+              <tr>
+                <th style="width:25%">Instrumento Jurídico</th>
+                <th style="width:75%">Objeto y Alcance en el Sistema de Salud</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Ley 1787 de 2016</strong></td>
+                <td>Crea el marco regulatorio para el acceso seguro e informado al uso médico y científico del cannabis y sus derivados en el territorio nacional. Declara de interés público la investigación biomédica y clínica en la materia.</td>
+              </tr>
+              <tr>
+                <td><strong>Decreto 613 de 2017</strong></td>
+                <td>Reglamentó inicialmente la Ley 1787, estableciendo el régimen de licencias para cultivo de plantas de cannabis psicoactivo y no psicoactivo, fabricación de derivados y cupos de producción.</td>
+              </tr>
+              <tr>
+                <td><strong>Decreto Ley 2106 de 2019</strong></td>
+                <td>Traslada de manera definitiva al Instituto Nacional de Vigilancia de Medicamentos y Alimentos (Invima) las competencias técnicas para la expedición de licencias de fabricación de derivados de cannabis.</td>
+              </tr>
+              <tr>
+                <td><strong>Decreto 811 de 2021</strong></td>
+                <td>Reorganiza integralmente el régimen de acceso: autoriza la exportación de flor seca de cannabis con fines medicinales, habilita el uso de derivados no psicoactivos en alimentos, bebidas y suplementos dietarios, y flexibiliza los requerimientos de cupos.</td>
+              </tr>
+              <tr>
+                <td><strong>Resolución Conjunta 227 de 2022</strong></td>
+                <td>Expedida por MinSalud, MinJusticia y MinAgricultura; reglamenta el procedimiento técnico de licencias, requisitos de seguridad, control aduanero y condiciones para proyectos de investigación científica.</td>
+              </tr>
+              <tr>
+                <td><strong>Resolución 539 de 2022</strong></td>
+                <td>Reglamenta el comercio exterior, exportación de flor y derivados, y la trazabilidad obligatoria de lotes farmacéuticos desde la semilla hasta el paciente final.</td>
+              </tr>
+              <tr>
+                <td><strong>Inclusión en el PBS y Rol del IETS</strong></td>
+                <td>El Instituto de Evaluación Tecnológica en Salud (IETS) evalúa la efectividad clínica comparada, seguridad y costo-efectividad de los medicamentos y preparados para sustentar las decisiones de financiamiento público en el Plan de Beneficios en Salud (PBS).</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <!-- 9. Guía de Interacción con el Mapa -->
+        <article class="doc-seccion" id="doc-guia">
+          <h3>9. Guía Práctica de Uso de la Herramienta Interactiva</h3>
+          <div class="doc-grid-2">
+            <div class="doc-card">
+              <h4>Exploración de la Matriz</h4>
+              <ul>
+                <li><strong>Navegación celda a celda:</strong> Haz clic en cualquier intersección para abrir la ficha técnica modal con la lista de estudios clasificados, resumen estructurado, autoría, año, número de pacientes y enlace DOI.</li>
+                <li><strong>Modo Burbujas:</strong> Muestra la coexistencia de revisiones sistemáticas (círculo índigo) y estudios primarios (círculo azul/celeste) con tamaño proporcional a la cantidad de publicaciones.</li>
+                <li><strong>Modo Densidad (Calor):</strong> Colorea cada celda según el volumen acumulado de literatura científica.</li>
+                <li><strong>Modo Certeza Máxima:</strong> Refleja el nivel metodológico más alto alcanzado en cada cruce según la escala GRADE.</li>
+              </ul>
+            </div>
+            <div class="doc-card">
+              <h4>Filtros Avanzados y Exportación</h4>
+              <ul>
+                <li><strong>Filtrado multidimensional:</strong> Filtra simultáneamente por diseño del estudio, certeza GRADE, dirección del hallazgo, tipo de población y rango temporal.</li>
+                <li><strong>Resaltar vacíos:</strong> El botón «Resaltar vacíos» ilumina en color rosa/rojo suave todas las celdas sin estudios para una rápida inspección de brechas.</li>
+                <li><strong>Exportación de microdatos:</strong> El botón «Exportar CSV» descarga un archivo con todas las variables normalizadas para su análisis en R, Python, Stata o Excel.</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <div class="contenedor pie__interior">
+      <div>Instituto de Evaluación Tecnológica en Salud — IETS · Bogotá, Colombia</div>
+      <div>
+        <button type="button" class="enlace-pie" data-ir-tab="mapa">Volver al mapa</button>
+        <button type="button" class="enlace-pie" data-ir-tab="acerca">Cómo leerlo</button>
+        <a href="/admin">Panel de administración</a>
+      </div>
+    </div>
+  </footer>
+</div> <!-- Fin de #vista-documentacion -->
+
+<!-- =========================================================================
+     VISTA 3: CÓMO LEERLO (Guía Rápida de Lectura y Marco Normativo)
+     ========================================================================= -->
+<div id="vista-acerca" class="vista-seccion" role="tabpanel" aria-labelledby="tab-acerca" hidden>
+
+  <div class="doc-header-bar">
+    <div class="contenedor doc-header-bar__interior">
+      <div>
+        <span class="doc-badge">Guía Rápida</span>
+        <h1 class="doc-titulo">Cómo leer e interpretar el mapa</h1>
+        <p class="doc-subtitulo">Orientación técnica para la correcta lectura de intervenciones, desenlaces clínicos y marco normativo.</p>
+      </div>
+      <button type="button" class="boton btn-volver-mapa" data-ir-tab="mapa">
+        ← Volver al mapa interactivo
+      </button>
+    </div>
+  </div>
+
+  <section class="acerca" id="acerca">
+    <div class="contenedor">
+      <div class="acerca__grid">
+        <div class="bloque">
+          <h3>Cómo se lee la matriz</h3>
+          <ul>
+            <li><b>Filas (Intervenciones):</b> Opciones terapéuticas agrupadas desde fármacos con registro sanitario hasta extractos y medidas de gobernanza.</li>
+            <li><b>Columnas (Desenlaces):</b> Desenlaces en salud categorizados en eficacia, calidad de vida, seguridad y sistema sanitario.</li>
+            <li><b>Círculos de color:</b> El círculo turquesa representa síntesis de evidencia; el círculo amarillo representa estudios primarios.</li>
+            <li><b>Celdas rayadas:</b> Identifican preguntas clínicas que carecen de publicaciones científicas registradas en el mapa.</li>
+          </ul>
+        </div>
+
+        <div class="bloque">
+          <h3>Consideraciones de interpretación</h3>
+          <p>
+            El tamaño de una burbuja refleja el <strong>volumen de publicaciones</strong> acumulado, no necesariamente la magnitud del beneficio terapéutico. Un cruce con diez estudios de certeza baja puede aportar menor solidez que un único ensayo clínico de certeza alta con bajo riesgo de sesgo.
+          </p>
+          <p>
+            Este recurso representa una herramienta descriptiva de síntesis científica y no sustituye la evaluación médica individualizada ni constituye una guía vinculante de cobertura clínica.
+          </p>
+        </div>
+
+        <div class="bloque">
+          <h3>Marco normativo vigente</h3>
+          <ul id="lista-normativa"><li>Cargando normatividad colombiana…</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="pie">
+    <div class="contenedor pie__interior">
+      <div>Instituto de Evaluación Tecnológica en Salud — IETS · Bogotá, Colombia</div>
+      <div>
+        <button type="button" class="enlace-pie" data-ir-tab="mapa">Volver al mapa</button>
+        <button type="button" class="enlace-pie" data-ir-tab="documentacion">Documentación técnica</button>
+        <a href="/admin">Panel de administración</a>
+      </div>
+    </div>
+  </footer>
+</div> <!-- Fin de #vista-acerca -->
+
+<!-- Tooltip flotante de celda -->
+<div class="tooltip" id="tooltip" role="status" aria-live="polite"></div>
+
+<!-- Modal estructurado de estudios -->
+<dialog class="modal" id="modal-estudios" aria-labelledby="modal-titulo">
+  <div class="modal__cabecera">
+    <div>
+      <h2 id="modal-titulo">Detalle de Estudios</h2>
+      <p id="modal-descripcion"></p>
+    </div>
+    <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar ventana de estudios">&times;</button>
+  </div>
+  <div class="modal__cuerpo">
+    <div class="lista-estudios">
+      <div class="lista-estudios__barra"><span id="modal-conteo">0 estudios encontrados</span></div>
+      <div id="modal-lista" role="listbox" aria-label="Lista de estudios asociados a la celda"></div>
+    </div>
+    <div class="detalle-estudio" id="modal-detalle"></div>
+  </div>
+</dialog>
+
+<div class="avisos" id="avisos" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='js/mapa.js') }}"></script>
+<script>
+// Controlador de pestañas de navegación institucional
+(function() {
+  const tabsValidas = ['mapa', 'documentacion', 'acerca'];
+
+  function activarTab(nombre, actualizarHash = true) {
+    if (!tabsValidas.includes(nombre)) nombre = 'mapa';
+
+    tabsValidas.forEach(function(tab) {
+      const seccion = document.getElementById('vista-' + tab);
+      const boton = document.querySelector('.masthead [data-tab="' + tab + '"]');
+      if (seccion) {
+        seccion.hidden = (tab !== nombre);
+      }
+      if (boton) {
+        if (tab === nombre) {
+          boton.classList.add('activo');
+          boton.setAttribute('aria-selected', 'true');
+        } else {
+          boton.classList.remove('activo');
+          boton.setAttribute('aria-selected', 'false');
+        }
+      }
+    });
+
+    if (actualizarHash) {
+      if (nombre === 'mapa') {
+        history.replaceState(null, '', location.pathname + (location.search || ''));
+      } else {
+        history.replaceState(null, '', '#' + nombre);
+      }
+    }
+
+    if (nombre === 'mapa') {
+      window.dispatchEvent(new Event('resize'));
+      window.scrollTo({ top: 0, behavior: 'instant' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  document.querySelectorAll('.masthead [data-tab]').forEach(function(btn) {
+    btn.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      activarTab(btn.dataset.tab);
+    });
+  });
+
+  document.querySelectorAll('[data-ir-tab]').forEach(function(el) {
+    el.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      activarTab(el.dataset.irTab);
+    });
+  });
+
+  function sincronizarConHash() {
+    const hash = location.hash.replace(/^#/, '');
+    if (tabsValidas.includes(hash)) {
+      activarTab(hash, false);
+    }
+  }
+
+  window.addEventListener('hashchange', sincronizarConHash);
+  sincronizarConHash();
+})();
+</script>
+</body>
+</html>

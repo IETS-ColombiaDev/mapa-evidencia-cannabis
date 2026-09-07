@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Administrar el mapa de evidencia — Instituto de Evaluación Tecnológica en Salud</title>
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%236366F1'/><circle cx='11' cy='12' r='4' fill='%23EEF2FF'/><circle cx='21' cy='19' r='5' fill='%2338BDF8'/><path d='M11 12L21 19' stroke='%23C7D2FE' stroke-width='2'/><circle cx='20' cy='10' r='3' fill='%2334D399'/></svg>">
+</head>
+<body>
+<a class="salto-contenido" href="#contenido">Ir al contenido</a>
+
+<header class="masthead">
+  <div class="contenedor masthead__interior">
+    <a class="marca" href="/">
+      <div class="marca__simbolo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="14" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+        </svg>
+      </div>
+      <div class="marca__textos">
+        <span class="marca__nombre">Instituto de Evaluación Tecnológica en Salud</span>
+        <span class="marca__sub">Panel de Administración · Sistema de Evidencia</span>
+      </div>
+    </a>
+    <nav aria-label="Secciones">
+      <a href="/#mapa">Mapa interactivo</a>
+      <a href="/#documentacion">Documentación</a>
+      <a href="/#acerca">Cómo leerlo</a>
+      <a href="/admin" aria-current="page" class="activo">Administración</a>
+    </nav>
+  </div>
+</header>
+
+<main class="admin" id="contenido">
+  <div class="contenedor">
+    <div class="admin__encabezado">
+      <div>
+        <h1>Administrar el mapa</h1>
+        <p>
+          Todo lo que se guarde aquí se refleja de inmediato en el mapa público. Esta versión no
+          pide inicio de sesión: cualquiera con el enlace puede modificar los datos.
+        </p>
+      </div>
+      <div class="admin__acciones">
+        <a class="boton boton--suave" href="/" target="_blank" rel="noopener">Ver el mapa</a>
+        <button type="button" class="boton" id="btn-nuevo">Agregar registro</button>
+      </div>
+    </div>
+
+    <div class="aviso" role="note">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.8 10.6H7.2v-1.6h1.6v1.6zm0-2.8H7.2V4.4h1.6v4.4z"/></svg>
+      <div>
+        Antes de publicar, verifica cada referencia contra la fuente original y cambia su estado a
+        <strong>Verificada</strong>. El mapa muestra ese estado en el detalle de cada estudio.
+      </div>
+    </div>
+
+    <div class="pestanas" role="tablist" aria-label="Secciones de administración">
+      <button role="tab" aria-selected="true" data-panel="estudios">Estudios</button>
+      <button role="tab" aria-selected="false" data-panel="intervenciones">Intervenciones</button>
+      <button role="tab" aria-selected="false" data-panel="desenlaces">Desenlaces</button>
+      <button role="tab" aria-selected="false" data-panel="taxonomia">Categorías y dominios</button>
+      <button role="tab" aria-selected="false" data-panel="importar">Carga por lotes</button>
+    </div>
+
+    <!-- Estudios -->
+    <section class="panel" data-panel="estudios">
+      <div class="tabla-envoltura">
+        <div class="tabla-barra">
+          <div class="buscador" style="max-width:340px">
+            <svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <label class="salto-contenido" for="q-admin">Buscar estudios</label>
+            <input type="search" id="q-admin" placeholder="Buscar por título, autoría o código…">
+          </div>
+          <select id="filtro-estado" class="icono-boton" aria-label="Filtrar por estado">
+            <option value="">Todos los estados</option>
+            <option value="Por verificar">Por verificar</option>
+            <option value="Verificada">Verificada</option>
+          </select>
+          <select id="filtro-tipo" class="icono-boton" aria-label="Filtrar por tipo de estudio">
+            <option value="">Todos los tipos</option>
+          </select>
+          <span id="conteo-estudios" style="margin-left:auto;font-size:.82rem;color:var(--tinta-suave);font-weight:700"></span>
+        </div>
+        <div class="tabla-desplazamiento">
+          <table class="datos">
+            <thead>
+              <tr>
+                <th>Código</th><th>Título</th><th>Año</th><th>Tipo</th>
+                <th>Certeza</th><th>Cruces</th><th>Estado</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="tabla-estudios"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Intervenciones -->
+    <section class="panel" data-panel="intervenciones" hidden>
+      <div class="tabla-envoltura">
+        <div class="tabla-barra">
+          <strong style="font-size:.9rem">Filas del mapa</strong>
+          <span style="font-size:.82rem;color:var(--tinta-suave)">El orden define la posición en la matriz.</span>
+          <button type="button" class="boton boton--suave" style="margin-left:auto" data-nuevo="intervencion">Nueva intervención</button>
+        </div>
+        <div class="tabla-desplazamiento">
+          <table class="datos">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Categoría</th><th>Orden</th><th>Estudios</th><th></th></tr></thead>
+            <tbody id="tabla-intervenciones"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Desenlaces -->
+    <section class="panel" data-panel="desenlaces" hidden>
+      <div class="tabla-envoltura">
+        <div class="tabla-barra">
+          <strong style="font-size:.9rem">Columnas del mapa</strong>
+          <span style="font-size:.82rem;color:var(--tinta-suave)">El orden define la posición en la matriz.</span>
+          <button type="button" class="boton boton--suave" style="margin-left:auto" data-nuevo="desenlace">Nuevo desenlace</button>
+        </div>
+        <div class="tabla-desplazamiento">
+          <table class="datos">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Dominio</th><th>Orden</th><th>Estudios</th><th></th></tr></thead>
+            <tbody id="tabla-desenlaces"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Taxonomía -->
+    <section class="panel" data-panel="taxonomia" hidden>
+      <div class="acerca__grid" style="align-items:start">
+        <div class="tabla-envoltura">
+          <div class="tabla-barra">
+            <strong style="font-size:.9rem">Categorías de intervención</strong>
+            <button type="button" class="boton boton--suave" style="margin-left:auto" data-nuevo="categoria">Nueva</button>
+          </div>
+          <table class="datos">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Orden</th><th></th></tr></thead>
+            <tbody id="tabla-categorias"></tbody>
+          </table>
+        </div>
+        <div class="tabla-envoltura">
+          <div class="tabla-barra">
+            <strong style="font-size:.9rem">Dominios de desenlace</strong>
+            <button type="button" class="boton boton--suave" style="margin-left:auto" data-nuevo="dominio">Nuevo</button>
+          </div>
+          <table class="datos">
+            <thead><tr><th>Código</th><th>Nombre</th><th>Orden</th><th></th></tr></thead>
+            <tbody id="tabla-dominios"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Importar -->
+    <section class="panel" data-panel="importar" hidden>
+      <div class="tabla-envoltura">
+        <div class="formulario">
+          <h3 style="color:var(--azul-900);margin-bottom:.5rem">Cargar varios estudios a la vez</h3>
+          <p style="color:var(--tinta-media);font-size:.9rem;max-width:70ch">
+            Pega un arreglo JSON. Las intervenciones y los desenlaces se referencian por su código
+            (I1, O3, …), que puedes consultar en las pestañas anteriores. Los registros con título
+            o tipo de estudio inválido se omiten y se listan al terminar.
+          </p>
+          <div class="campo campo--ancho">
+            <label for="json-importar">Contenido JSON</label>
+            <textarea id="json-importar" style="min-height:260px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem" spellcheck="false"></textarea>
+            <span class="ayuda">Formato admitido: <code>{"estudios": [ … ]}</code> o directamente un arreglo.</span>
+          </div>
+          <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
+            <button type="button" class="boton" id="btn-importar">Cargar registros</button>
+            <button type="button" class="boton boton--suave" id="btn-ejemplo">Insertar ejemplo</button>
+          </div>
+          <div id="resultado-importacion" style="margin-top:1rem;font-size:.88rem"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- Formulario de estudio -->
+<dialog class="modal" id="modal-estudio" aria-labelledby="titulo-form-estudio">
+  <div class="modal__cabecera">
+    <div>
+      <h2 id="titulo-form-estudio">Nuevo estudio</h2>
+      <p>Los campos marcados con asterisco son obligatorios.</p>
+    </div>
+    <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+  </div>
+  <form id="form-estudio">
+    <div class="formulario">
+      <div class="campos">
+        <div class="campo campo--ancho">
+          <label for="f-titulo">Título *</label>
+          <input id="f-titulo" name="titulo" required maxlength="400">
+        </div>
+        <div class="campo">
+          <label for="f-codigo">Código</label>
+          <input id="f-codigo" name="codigo" placeholder="Se asigna solo">
+        </div>
+        <div class="campo">
+          <label for="f-autores">Autoría</label>
+          <input id="f-autores" name="autores" placeholder="Apellido AA; Apellido BB; et al.">
+        </div>
+        <div class="campo">
+          <label for="f-anio">Año</label>
+          <input id="f-anio" name="anio" type="number" min="1900" max="2100">
+        </div>
+        <div class="campo">
+          <label for="f-fuente">Fuente o revista</label>
+          <input id="f-fuente" name="fuente">
+        </div>
+        <div class="campo">
+          <label for="f-tipo">Tipo de estudio *</label>
+          <select id="f-tipo" name="tipo_estudio" required></select>
+          <span class="ayuda" id="ayuda-eje"></span>
+        </div>
+        <div class="campo">
+          <label for="f-certeza">Certeza reportada</label>
+          <select id="f-certeza" name="certeza"></select>
+        </div>
+        <div class="campo">
+          <label for="f-hallazgo">Dirección del hallazgo</label>
+          <select id="f-hallazgo" name="hallazgo"></select>
+        </div>
+        <div class="campo">
+          <label for="f-poblacion">Población</label>
+          <select id="f-poblacion" name="poblacion"></select>
+        </div>
+        <div class="campo">
+          <label for="f-ambito">Ámbito</label>
+          <select id="f-ambito" name="ambito"></select>
+        </div>
+        <div class="campo">
+          <label for="f-pais">País</label>
+          <input id="f-pais" name="pais">
+        </div>
+        <div class="campo">
+          <label for="f-n">Participantes</label>
+          <input id="f-n" name="n_participantes" type="number" min="0">
+        </div>
+        <div class="campo">
+          <label for="f-doi">DOI</label>
+          <input id="f-doi" name="doi" placeholder="10.xxxx/xxxxx">
+        </div>
+        <div class="campo">
+          <label for="f-url">Enlace</label>
+          <input id="f-url" name="url" type="url" placeholder="https://">
+        </div>
+        <div class="campo">
+          <label for="f-estado">Estado del registro</label>
+          <select id="f-estado" name="estado"></select>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="f-resumen">Resumen</label>
+          <textarea id="f-resumen" name="resumen" placeholder="Qué se evaluó, en quiénes y qué encontró."></textarea>
+        </div>
+        <div class="pareja-selectores">
+          <div class="campo">
+            <label id="lbl-intervenciones">Intervenciones evaluadas *</label>
+            <div class="selector-multiple" id="sel-intervenciones" role="group" aria-labelledby="lbl-intervenciones"></div>
+            <span class="ayuda">Cada combinación de intervención y desenlace dibuja una celda del mapa.</span>
+          </div>
+          <div class="campo">
+            <label id="lbl-desenlaces">Desenlaces reportados *</label>
+            <div class="selector-multiple" id="sel-desenlaces" role="group" aria-labelledby="lbl-desenlaces"></div>
+            <span class="ayuda">Marca solo los desenlaces que el estudio reporta de verdad.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal__pie">
+      <span class="mensaje" id="mensaje-estudio"></span>
+      <button type="button" class="boton boton--fantasma" data-cerrar>Cancelar</button>
+      <button type="submit" class="boton">Guardar estudio</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Formulario de taxonomía -->
+<dialog class="modal" id="modal-taxonomia" style="width:min(560px,94vw)" aria-labelledby="titulo-form-tax">
+  <div class="modal__cabecera">
+    <div><h2 id="titulo-form-tax">Nuevo elemento</h2></div>
+    <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar">&times;</button>
+  </div>
+  <form id="form-taxonomia">
+    <div class="formulario">
+      <div class="campos">
+        <div class="campo">
+          <label for="t-codigo">Código</label>
+          <input id="t-codigo" name="codigo" placeholder="Se asigna solo">
+        </div>
+        <div class="campo">
+          <label for="t-orden">Orden</label>
+          <input id="t-orden" name="orden" type="number" min="1" value="99">
+        </div>
+        <div class="campo campo--ancho" id="campo-padre">
+          <label for="t-padre" id="lbl-padre">Pertenece a</label>
+          <select id="t-padre" name="padre"></select>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="t-nombre">Nombre *</label>
+          <input id="t-nombre" name="nombre" required>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="t-descripcion">Descripción</label>
+          <textarea id="t-descripcion" name="descripcion" style="min-height:80px"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal__pie">
+      <span class="mensaje" id="mensaje-taxonomia"></span>
+      <button type="button" class="boton boton--fantasma" data-cerrar>Cancelar</button>
+      <button type="submit" class="boton">Guardar</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Confirmación -->
+<dialog class="modal" id="modal-confirmar" style="width:min(460px,92vw)" aria-labelledby="titulo-confirmar">
+  <div class="confirmacion">
+    <h3 id="titulo-confirmar">Eliminar registro</h3>
+    <p id="texto-confirmar"></p>
+  </div>
+  <div class="modal__pie">
+    <button type="button" class="boton boton--fantasma" data-cerrar>Cancelar</button>
+    <button type="button" class="boton boton--peligro" id="btn-confirmar">Eliminar</button>
+  </div>
+</dialog>
+
+<footer class="pie">
+  <div class="contenedor pie__interior">
+    <div>Instituto de Evaluación Tecnológica en Salud · Bogotá, Colombia</div>
+    <div>
+      <a href="/" style="margin-right:1.2rem;">Volver al mapa</a>
+      <a href="/#documentacion">Documentación técnica</a>
+    </div>
+  </div>
+</footer>
+
+<div class="avisos" id="avisos" aria-live="polite"></div>
+
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

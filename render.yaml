@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: mapa-evidencia-cannabis
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.4"
+      - key: MAPA_DB_PATH
+        value: /var/data/mapa_cannabis.db
+    disk:
+      name: datos
+      mountPath: /var/data
+      sizeGB: 1
