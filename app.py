@@ -16,8 +16,11 @@ API:
     POST   /api/desenlaces             crear desenlace        (idem PUT / DELETE)
     POST   /api/categorias             crear categoría        (idem PUT / DELETE)
     POST   /api/dominios               crear dominio          (idem PUT / DELETE)
+    POST   /api/importar               carga masiva desde JSON
+    POST   /api/importar-excel         carga masiva desde archivo Excel (.xlsx)
 """
 
+import io
 import sqlite3
 
 from flask import Flask, jsonify, render_template, request
@@ -158,13 +161,44 @@ def _validar_estudio(d):
         return "El título es obligatorio."
     if not campo(d, "tipo_estudio"):
         return "El tipo de estudio es obligatorio."
-    if campo(d, "tipo_estudio") not in TIPOS_ESTUDIO:
-        return "El tipo de estudio no pertenece a la lista permitida."
-    if not d.get("intervenciones"):
-        return "Selecciona al menos una intervención."
-    if not d.get("desenlaces"):
-        return "Selecciona al menos un desenlace."
     return None
+
+
+_COLS_INSERT = """(codigo, id_excel, titulo, autores, anio, fuente, volumen, numero,
+                   doi, tipo_estudio, poblacion, ambito, pais, certeza, hallazgo,
+                   n_participantes, url, resumen, estado, poblacion_especial,
+                   dominio_indicacion, indicacion, intervencion_texto,
+                   desenlaces_texto, abstract)"""
+
+
+def _vals_de(d, codigo, estado_defecto="Por verificar"):
+    return (
+        codigo,
+        entero_o_nulo(d.get("id_excel")),
+        campo(d, "titulo"),
+        campo(d, "autores"),
+        entero_o_nulo(d.get("anio")),
+        campo(d, "fuente"),
+        campo(d, "volumen"),
+        campo(d, "numero"),
+        campo(d, "doi"),
+        campo(d, "tipo_estudio"),
+        campo(d, "poblacion", "Mixta"),
+        campo(d, "ambito", "Global"),
+        campo(d, "pais"),
+        campo(d, "certeza", "No evaluada"),
+        campo(d, "hallazgo", "No concluyente"),
+        entero_o_nulo(d.get("n_participantes")),
+        campo(d, "url"),
+        campo(d, "resumen"),
+        campo(d, "estado", estado_defecto),
+        campo(d, "poblacion_especial"),
+        campo(d, "dominio_indicacion"),
+        campo(d, "indicacion"),
+        campo(d, "intervencion_texto"),
+        campo(d, "desenlaces_texto"),
+        campo(d, "abstract"),
+    )
 
 
 @app.route("/api/estudios", methods=["POST"])
@@ -178,16 +212,8 @@ def crear_estudio():
         codigo = campo(d, "codigo") or siguiente_codigo(conn, "estudios", "E")
         try:
             cur = conn.execute(
-                """INSERT INTO estudios (codigo, titulo, autores, anio, fuente, tipo_estudio,
-                                         poblacion, ambito, pais, certeza, hallazgo,
-                                         n_participantes, doi, url, resumen, estado)
-                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                (codigo, campo(d, "titulo"), campo(d, "autores"), entero_o_nulo(d.get("anio")),
-                 campo(d, "fuente"), campo(d, "tipo_estudio"), campo(d, "poblacion", "Mixta"),
-                 campo(d, "ambito", "Global"), campo(d, "pais"), campo(d, "certeza", "No evaluada"),
-                 campo(d, "hallazgo", "No concluyente"), entero_o_nulo(d.get("n_participantes")),
-                 campo(d, "doi"), campo(d, "url"), campo(d, "resumen"),
-                 campo(d, "estado", "Por verificar")),
+                f"INSERT INTO estudios {_COLS_INSERT} VALUES ({','.join('?' * 25)})",
+                _vals_de(d, codigo),
             )
         except sqlite3.IntegrityError:
             return error(f"Ya existe un estudio con el código {codigo}.", 409)
@@ -210,17 +236,15 @@ def actualizar_estudio(estudio_id):
             return error("No se encontró el estudio.", 404)
         try:
             conn.execute(
-                """UPDATE estudios SET codigo=?, titulo=?, autores=?, anio=?, fuente=?,
-                       tipo_estudio=?, poblacion=?, ambito=?, pais=?, certeza=?, hallazgo=?,
-                       n_participantes=?, doi=?, url=?, resumen=?, estado=?,
+                """UPDATE estudios SET codigo=?, id_excel=?, titulo=?, autores=?, anio=?,
+                       fuente=?, volumen=?, numero=?, doi=?, tipo_estudio=?,
+                       poblacion=?, ambito=?, pais=?, certeza=?, hallazgo=?,
+                       n_participantes=?, url=?, resumen=?, estado=?,
+                       poblacion_especial=?, dominio_indicacion=?, indicacion=?,
+                       intervencion_texto=?, desenlaces_texto=?, abstract=?,
                        actualizado_en=datetime('now')
                    WHERE id=?""",
-                (campo(d, "codigo"), campo(d, "titulo"), campo(d, "autores"),
-                 entero_o_nulo(d.get("anio")), campo(d, "fuente"), campo(d, "tipo_estudio"),
-                 campo(d, "poblacion", "Mixta"), campo(d, "ambito", "Global"), campo(d, "pais"),
-                 campo(d, "certeza", "No evaluada"), campo(d, "hallazgo", "No concluyente"),
-                 entero_o_nulo(d.get("n_participantes")), campo(d, "doi"), campo(d, "url"),
-                 campo(d, "resumen"), campo(d, "estado", "Por verificar"), estudio_id),
+                _vals_de(d, campo(d, "codigo")) + (estudio_id,),
             )
         except sqlite3.IntegrityError:
             return error("Ese código ya está en uso por otro estudio.", 409)
@@ -420,7 +444,7 @@ def eliminar_dominio(did):
     return jsonify({"ok": True})
 
 
-# ── Importación por lotes desde el panel ───────────────────────────────────
+# ── Importación por lotes (JSON) ──────────────────────────────────────────
 @app.route("/api/importar", methods=["POST"])
 def importar():
     """Carga varios estudios a la vez desde un arreglo JSON con códigos de taxonomía."""
@@ -436,23 +460,14 @@ def importar():
         for fila in filas:
             titulo = campo(fila, "titulo")
             tipo = campo(fila, "tipo_estudio")
-            if not titulo or tipo not in TIPOS_ESTUDIO:
+            if not titulo:
                 omitidos.append(titulo or "(sin título)")
                 continue
             codigo = campo(fila, "codigo") or siguiente_codigo(conn, "estudios", "E")
             try:
                 cur = conn.execute(
-                    """INSERT INTO estudios (codigo, titulo, autores, anio, fuente, tipo_estudio,
-                                             poblacion, ambito, pais, certeza, hallazgo,
-                                             n_participantes, doi, url, resumen, estado)
-                       VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-                    (codigo, titulo, campo(fila, "autores"), entero_o_nulo(fila.get("anio")),
-                     campo(fila, "fuente"), tipo, campo(fila, "poblacion", "Mixta"),
-                     campo(fila, "ambito", "Global"), campo(fila, "pais"),
-                     campo(fila, "certeza", "No evaluada"), campo(fila, "hallazgo", "No concluyente"),
-                     entero_o_nulo(fila.get("n_participantes")), campo(fila, "doi"),
-                     campo(fila, "url"), campo(fila, "resumen"),
-                     campo(fila, "estado", "Por verificar")),
+                    f"INSERT INTO estudios {_COLS_INSERT} VALUES ({','.join('?' * 25)})",
+                    _vals_de(fila, codigo),
                 )
             except sqlite3.IntegrityError:
                 omitidos.append(titulo)
@@ -468,6 +483,82 @@ def importar():
                                  (eid, des_ids[cod]))
             creados += 1
 
+    return jsonify({"ok": True, "creados": creados, "omitidos": omitidos})
+
+
+# ── Importación masiva desde Excel ─────────────────────────────────────────
+@app.route("/api/importar-excel", methods=["POST"])
+def importar_excel():
+    """Carga estudios desde un archivo Excel (.xlsx) con las columnas de la matriz de extracción.
+
+    Columnas esperadas (por posición):
+        A: ID | B: Autor | C: Año | D: Título | E: Revista | F: Volumen | G: Número
+        H: DOI | I: Tipo de estudio | J: Población especial
+        K: Dominio general de la indicación clínica | L: Indicación
+        M: Intervención con cannabis | N: Desenlaces evaluados | O: Abstract
+    """
+    try:
+        import openpyxl
+    except ImportError:
+        return error("El módulo 'openpyxl' no está instalado en el servidor.", 500)
+
+    archivo = request.files.get("archivo")
+    if not archivo:
+        return error("No se recibió ningún archivo.")
+
+    nombre = archivo.filename or ""
+    if not nombre.lower().endswith(".xlsx"):
+        return error("El archivo debe ser un .xlsx (Excel).")
+
+    try:
+        wb = openpyxl.load_workbook(io.BytesIO(archivo.read()), read_only=True, data_only=True)
+    except Exception:
+        return error("No fue posible leer el archivo Excel. Verifica el formato.")
+
+    # Use first sheet
+    ws = wb.active
+
+    creados, omitidos = 0, []
+    with get_conn() as conn:
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if row[0] is None and row[3] is None:
+                continue  # skip empty rows
+
+            titulo = str(row[3]).strip() if row[3] else ""
+            tipo_estudio = str(row[8]).strip() if row[8] else ""
+            if not titulo:
+                omitidos.append("(sin título)")
+                continue
+
+            codigo = siguiente_codigo(conn, "estudios", "E")
+            fila_datos = {
+                "titulo": titulo,
+                "id_excel": row[0],
+                "autores": str(row[1]).strip() if row[1] else "",
+                "anio": row[2],
+                "fuente": str(row[4]).strip() if row[4] else "",
+                "volumen": str(row[5]).strip() if row[5] else "",
+                "numero": str(row[6]).strip() if row[6] else "",
+                "doi": str(row[7]).strip() if row[7] else "",
+                "tipo_estudio": tipo_estudio,
+                "poblacion_especial": str(row[9]).strip() if row[9] else "",
+                "dominio_indicacion": str(row[10]).strip() if row[10] and len(row) > 10 else "",
+                "indicacion": str(row[11]).strip() if row[11] and len(row) > 11 else "",
+                "intervencion_texto": str(row[12]).strip() if row[12] and len(row) > 12 else "",
+                "desenlaces_texto": str(row[13]).strip() if row[13] and len(row) > 13 else "",
+                "abstract": str(row[14]).strip() if len(row) > 14 and row[14] else "",
+            }
+
+            try:
+                conn.execute(
+                    f"INSERT INTO estudios {_COLS_INSERT} VALUES ({','.join('?' * 25)})",
+                    _vals_de(fila_datos, codigo),
+                )
+                creados += 1
+            except sqlite3.IntegrityError:
+                omitidos.append(titulo[:80])
+
+    wb.close()
     return jsonify({"ok": True, "creados": creados, "omitidos": omitidos})
 
 

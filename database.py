@@ -15,7 +15,7 @@ from data.taxonomia import (
     DOMINIOS_DESENLACE,
     INTERVENCIONES,
 )
-from data.estudios_semilla import ESTUDIOS, NORMATIVA_COLOMBIA
+from data.estudios_semilla import cargar_estudios, NORMATIVA_COLOMBIA
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.environ.get("MAPA_DB_PATH", os.path.join(BASE_DIR, "mapa_cannabis.db"))
@@ -29,10 +29,15 @@ TIPOS_SINTESIS = {
     "Mapa de evidencia",
     "Guía de práctica clínica",
     "Evaluación de tecnología sanitaria",
+    "Revisión paraguas",
+    "Revisión rápida",
+    "Revisión de alcance",
+    "Revisión viva",
 }
 TIPOS_PRIMARIO = {
     "Ensayo clínico aleatorizado",
     "Ensayo clínico no aleatorizado",
+    "Ensayo clínico",
     "Estudio observacional",
     "Estudio cualitativo",
     "Evaluación económica",
@@ -103,25 +108,34 @@ CREATE TABLE IF NOT EXISTS desenlaces (
 );
 
 CREATE TABLE IF NOT EXISTS estudios (
-    id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    codigo          TEXT UNIQUE NOT NULL,
-    titulo          TEXT NOT NULL,
-    autores         TEXT DEFAULT '',
-    anio            INTEGER,
-    fuente          TEXT DEFAULT '',
-    tipo_estudio    TEXT NOT NULL,
-    poblacion       TEXT DEFAULT 'Mixta',
-    ambito          TEXT DEFAULT 'Global',
-    pais            TEXT DEFAULT '',
-    certeza         TEXT DEFAULT 'No evaluada',
-    hallazgo        TEXT DEFAULT 'No concluyente',
-    n_participantes INTEGER,
-    doi             TEXT DEFAULT '',
-    url             TEXT DEFAULT '',
-    resumen         TEXT DEFAULT '',
-    estado          TEXT DEFAULT 'Por verificar',
-    creado_en       TEXT DEFAULT (datetime('now')),
-    actualizado_en  TEXT DEFAULT (datetime('now'))
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    codigo              TEXT UNIQUE NOT NULL,
+    id_excel            INTEGER,
+    titulo              TEXT NOT NULL,
+    autores             TEXT DEFAULT '',
+    anio                INTEGER,
+    fuente              TEXT DEFAULT '',
+    volumen             TEXT DEFAULT '',
+    numero              TEXT DEFAULT '',
+    doi                 TEXT DEFAULT '',
+    tipo_estudio        TEXT NOT NULL,
+    poblacion           TEXT DEFAULT 'Mixta',
+    ambito              TEXT DEFAULT 'Global',
+    pais                TEXT DEFAULT '',
+    certeza             TEXT DEFAULT 'No evaluada',
+    hallazgo            TEXT DEFAULT 'No concluyente',
+    n_participantes     INTEGER,
+    url                 TEXT DEFAULT '',
+    resumen             TEXT DEFAULT '',
+    estado              TEXT DEFAULT 'Por verificar',
+    poblacion_especial  TEXT DEFAULT '',
+    dominio_indicacion  TEXT DEFAULT '',
+    indicacion          TEXT DEFAULT '',
+    intervencion_texto  TEXT DEFAULT '',
+    desenlaces_texto    TEXT DEFAULT '',
+    abstract            TEXT DEFAULT '',
+    creado_en           TEXT DEFAULT (datetime('now')),
+    actualizado_en      TEXT DEFAULT (datetime('now'))
 );
 
 CREATE TABLE IF NOT EXISTS estudio_intervencion (
@@ -170,8 +184,8 @@ def _sembrar(conn: sqlite3.Connection) -> None:
             " VALUES (?,?,?,?)",
             (cat["codigo"], cat["nombre"], cat["descripcion"], cat["orden"]),
         )
-    cat_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM categorias_intervencion")}
 
+    cat_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM categorias_intervencion")}
     for codigo, cat_cod, nombre, desc, orden in INTERVENCIONES:
         conn.execute(
             "INSERT OR IGNORE INTO intervenciones (codigo, categoria_id, nombre, descripcion, orden)"
@@ -185,8 +199,8 @@ def _sembrar(conn: sqlite3.Connection) -> None:
             " VALUES (?,?,?,?)",
             (dom["codigo"], dom["nombre"], dom["descripcion"], dom["orden"]),
         )
-    dom_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM dominios_desenlace")}
 
+    dom_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM dominios_desenlace")}
     for codigo, dom_cod, nombre, desc, orden in DESENLACES:
         conn.execute(
             "INSERT OR IGNORE INTO desenlaces (codigo, dominio_id, nombre, descripcion, orden)"
@@ -194,33 +208,34 @@ def _sembrar(conn: sqlite3.Connection) -> None:
             (codigo, dom_ids[dom_cod], nombre, desc, orden),
         )
 
-    int_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM intervenciones")}
-    des_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM desenlaces")}
-
-    for e in ESTUDIOS:
-        cur = conn.execute(
-            """INSERT INTO estudios (codigo, titulo, autores, anio, fuente, tipo_estudio,
-                                     poblacion, ambito, pais, certeza, hallazgo, n_participantes,
-                                     doi, url, resumen, estado)
-               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
-            (
-                e["codigo"], e["titulo"], e["autores"], e["anio"], e["fuente"], e["tipo_estudio"],
-                e["poblacion"], e["ambito"], e["pais"], e["certeza"], e["hallazgo"],
-                e.get("n_participantes"), e.get("doi", ""), e.get("url", ""), e["resumen"],
-                "Por verificar",
-            ),
-        )
-        eid = cur.lastrowid
-        for cod in e["intervenciones"]:
-            if cod in int_ids:
-                conn.execute(
-                    "INSERT OR IGNORE INTO estudio_intervencion VALUES (?,?)", (eid, int_ids[cod])
-                )
-        for cod in e["desenlaces"]:
-            if cod in des_ids:
-                conn.execute(
-                    "INSERT OR IGNORE INTO estudio_desenlace VALUES (?,?)", (eid, des_ids[cod])
-                )
+    # Cargar estudios desde el JSON
+    estudios = cargar_estudios()
+    for e in estudios:
+        try:
+            conn.execute(
+                """INSERT INTO estudios (codigo, id_excel, titulo, autores, anio, fuente,
+                                         volumen, numero, doi, tipo_estudio, poblacion,
+                                         ambito, pais, certeza, hallazgo, n_participantes,
+                                         url, resumen, estado, poblacion_especial,
+                                         dominio_indicacion, indicacion, intervencion_texto,
+                                         desenlaces_texto, abstract)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+                (
+                    e["codigo"], e.get("id_excel"), e["titulo"], e["autores"], e["anio"],
+                    e["fuente"], e.get("volumen", ""), e.get("numero", ""), e.get("doi", ""),
+                    e["tipo_estudio"], "Mixta", "Global", "",
+                    "No evaluada", "No concluyente", None,
+                    "", "", "Por verificar",
+                    e.get("poblacion_especial", ""),
+                    e.get("dominio_indicacion", ""),
+                    e.get("indicacion", ""),
+                    e.get("intervencion_texto", ""),
+                    e.get("desenlaces_texto", ""),
+                    e.get("abstract", ""),
+                ),
+            )
+        except sqlite3.IntegrityError:
+            pass  # Skip duplicates
 
     for i, n in enumerate(NORMATIVA_COLOMBIA, start=1):
         conn.execute(

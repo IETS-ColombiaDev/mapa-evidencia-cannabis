@@ -95,7 +95,7 @@
             <thead>
               <tr>
                 <th>Código</th><th>Título</th><th>Año</th><th>Tipo</th>
-                <th>Certeza</th><th>Cruces</th><th>Estado</th><th></th>
+                <th>Dominio</th><th>Cruces</th><th>Estado</th><th></th>
               </tr>
             </thead>
             <tbody id="tabla-estudios"></tbody>
@@ -168,15 +168,33 @@
     <section class="panel" data-panel="importar" hidden>
       <div class="tabla-envoltura">
         <div class="formulario">
-          <h3 style="color:var(--azul-900);margin-bottom:.5rem">Cargar varios estudios a la vez</h3>
+          <h3 style="color:var(--azul-900);margin-bottom:.5rem">Carga masiva desde archivo Excel</h3>
           <p style="color:var(--tinta-media);font-size:.9rem;max-width:70ch">
-            Pega un arreglo JSON. Las intervenciones y los desenlaces se referencian por su código
+            Sube un archivo <code>.xlsx</code> con las mismas columnas de la Extraction Matrix:
+            <strong>ID, Autor, Año, Título, Revista, Volumen, Número, DOI, Tipo de estudio,
+            Población especial, Dominio general, Indicación, Intervención, Desenlaces, Abstract</strong>.
+            La primera fila debe contener los encabezados. Los registros sin título se omiten.
+          </p>
+          <div class="campo campo--ancho" style="margin-top:1rem">
+            <label for="archivo-excel">Archivo Excel (.xlsx)</label>
+            <input type="file" id="archivo-excel" accept=".xlsx" style="font-size:.9rem">
+          </div>
+          <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
+            <button type="button" class="boton" id="btn-importar-excel">Cargar desde Excel</button>
+          </div>
+          <div id="resultado-importacion-excel" style="margin-top:1rem;font-size:.88rem"></div>
+
+          <hr style="margin:2rem 0;border:none;border-top:1px solid var(--borde)">
+
+          <h3 style="color:var(--azul-900);margin-bottom:.5rem">Cargar varios estudios desde JSON</h3>
+          <p style="color:var(--tinta-media);font-size:.9rem;max-width:70ch">
+            Pega un arreglo JSON. Las intervenciones y los desenlaces del mapa se referencian por su código
             (I1, O3, …), que puedes consultar en las pestañas anteriores. Los registros con título
-            o tipo de estudio inválido se omiten y se listan al terminar.
+            vacío se omiten y se listan al terminar.
           </p>
           <div class="campo campo--ancho">
             <label for="json-importar">Contenido JSON</label>
-            <textarea id="json-importar" style="min-height:260px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem" spellcheck="false"></textarea>
+            <textarea id="json-importar" style="min-height:200px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.82rem" spellcheck="false"></textarea>
             <span class="ayuda">Formato admitido: <code>{"estudios": [ … ]}</code> o directamente un arreglo.</span>
           </div>
           <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
@@ -223,6 +241,14 @@
           <input id="f-fuente" name="fuente">
         </div>
         <div class="campo">
+          <label for="f-volumen">Volumen</label>
+          <input id="f-volumen" name="volumen">
+        </div>
+        <div class="campo">
+          <label for="f-numero">Número</label>
+          <input id="f-numero" name="numero">
+        </div>
+        <div class="campo">
           <label for="f-tipo">Tipo de estudio *</label>
           <select id="f-tipo" name="tipo_estudio" required></select>
           <span class="ayuda" id="ayuda-eje"></span>
@@ -264,17 +290,41 @@
           <select id="f-estado" name="estado"></select>
         </div>
         <div class="campo campo--ancho">
+          <label for="f-poblacion-especial">Población especial</label>
+          <input id="f-poblacion-especial" name="poblacion_especial" placeholder="Ej: Población pediátrica, Adultos mayores">
+        </div>
+        <div class="campo campo--ancho">
+          <label for="f-dominio-indicacion">Dominio general de la indicación</label>
+          <input id="f-dominio-indicacion" name="dominio_indicacion" placeholder="Ej: Dolor y cuidados paliativos, Neurología">
+        </div>
+        <div class="campo campo--ancho">
+          <label for="f-indicacion">Indicación (según autores)</label>
+          <textarea id="f-indicacion" name="indicacion" style="min-height:60px" placeholder="Indicación clínica evaluada"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="f-intervencion-texto">Intervención con cannabis (según autores)</label>
+          <textarea id="f-intervencion-texto" name="intervencion_texto" style="min-height:60px" placeholder="Descripción de la intervención evaluada"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="f-desenlaces-texto">Desenlaces evaluados (según autores)</label>
+          <textarea id="f-desenlaces-texto" name="desenlaces_texto" style="min-height:60px" placeholder="Desenlaces reportados en el estudio"></textarea>
+        </div>
+        <div class="campo campo--ancho">
           <label for="f-resumen">Resumen</label>
           <textarea id="f-resumen" name="resumen" placeholder="Qué se evaluó, en quiénes y qué encontró."></textarea>
         </div>
+        <div class="campo campo--ancho">
+          <label for="f-abstract">Abstract</label>
+          <textarea id="f-abstract" name="abstract" style="min-height:120px" placeholder="Abstract original del estudio."></textarea>
+        </div>
         <div class="pareja-selectores">
           <div class="campo">
-            <label id="lbl-intervenciones">Intervenciones evaluadas *</label>
+            <label id="lbl-intervenciones">Intervenciones evaluadas (mapa)</label>
             <div class="selector-multiple" id="sel-intervenciones" role="group" aria-labelledby="lbl-intervenciones"></div>
             <span class="ayuda">Cada combinación de intervención y desenlace dibuja una celda del mapa.</span>
           </div>
           <div class="campo">
-            <label id="lbl-desenlaces">Desenlaces reportados *</label>
+            <label id="lbl-desenlaces">Desenlaces reportados (mapa)</label>
             <div class="selector-multiple" id="sel-desenlaces" role="group" aria-labelledby="lbl-desenlaces"></div>
             <span class="ayuda">Marca solo los desenlaces que el estudio reporta de verdad.</span>
           </div>

@@ -66,6 +66,8 @@ async function cargar() {
     estado.datos.estudios.forEach((e) => {
       e._busqueda = normalizar([
         e.titulo, e.autores, e.fuente, e.resumen, e.pais, e.codigo,
+        e.dominio_indicacion, e.indicacion, e.intervencion_texto,
+        e.desenlaces_texto, e.abstract, e.poblacion_especial,
         e.intervenciones.map((i) => i.nombre).join(" "),
         e.desenlaces.map((d) => d.nombre).join(" "),
       ].join(" "));
@@ -576,6 +578,52 @@ function pintarDetalle(e) {
   const claseEstado = e.estado === "Verificada" ? "etiqueta--ok" : "etiqueta--alerta";
   const enlace = e.url || (e.doi ? `https://doi.org/${e.doi}` : "");
 
+  // Build source line: autores · año · fuente vol(num)
+  let fuenteCompleta = e.fuente || "";
+  if (e.volumen) fuenteCompleta += ` ${e.volumen}`;
+  if (e.numero) fuenteCompleta += `(${e.numero})`;
+
+  // Build extra fields section
+  let extras = "";
+  if (e.dominio_indicacion) {
+    extras += `<div><dt>Dominio de la indicación</dt><dd>${escapar(e.dominio_indicacion)}</dd></div>`;
+  }
+  if (e.indicacion) {
+    extras += `<div><dt>Indicación</dt><dd>${escapar(e.indicacion)}</dd></div>`;
+  }
+  if (e.poblacion_especial) {
+    extras += `<div><dt>Población especial</dt><dd>${escapar(e.poblacion_especial)}</dd></div>`;
+  }
+  if (e.intervencion_texto) {
+    extras += `<div><dt>Intervención (según autores)</dt><dd>${escapar(e.intervencion_texto)}</dd></div>`;
+  }
+  if (e.desenlaces_texto) {
+    extras += `<div><dt>Desenlaces (según autores)</dt><dd>${escapar(e.desenlaces_texto)}</dd></div>`;
+  }
+
+  // Build abstract section
+  let abstractHtml = "";
+  if (e.abstract) {
+    abstractHtml = `
+      <details class="abstract-detalle" style="margin-top:.8rem">
+        <summary style="cursor:pointer;font-weight:600;font-size:.85rem;color:var(--azul-700)">
+          Ver abstract
+        </summary>
+        <p class="resumen" style="margin-top:.5rem;font-size:.82rem;line-height:1.6;max-height:300px;overflow-y:auto;padding-right:.5rem">${escapar(e.abstract)}</p>
+      </details>`;
+  }
+
+  // Build map links section (only if study has taxonomy links)
+  let mapeoHtml = "";
+  if (e.intervenciones.length || e.desenlaces.length) {
+    mapeoHtml = `<div class="mapeo">
+      ${e.intervenciones.length ? `<h4>Intervenciones evaluadas (mapa)</h4>
+      <div class="etiquetas">${e.intervenciones.map((i) => `<span class="etiqueta">${escapar(i.nombre)}</span>`).join("")}</div>` : ""}
+      ${e.desenlaces.length ? `<h4>Desenlaces reportados (mapa)</h4>
+      <div class="etiquetas">${e.desenlaces.map((d) => `<span class="etiqueta">${escapar(d.nombre)}</span>`).join("")}</div>` : ""}
+    </div>`;
+  }
+
   $("#modal-detalle").innerHTML = `
     <div class="etiquetas">
       <span class="etiqueta ${claseEje}">${escapar(e.tipo_estudio)}</span>
@@ -584,21 +632,18 @@ function pintarDetalle(e) {
       <span class="etiqueta ${claseEstado}">${escapar(e.estado)}</span>
     </div>
     <h3>${escapar(e.titulo)}</h3>
-    <p class="autoria">${escapar(e.autores || "Sin autoría registrada")} · ${e.anio || "s. f."}${e.fuente ? " · " + escapar(e.fuente) : ""}</p>
-    <p class="resumen">${escapar(e.resumen || "Este registro todavía no tiene resumen.")}</p>
+    <p class="autoria">${escapar(e.autores || "Sin autoría registrada")} · ${e.anio || "s. f."}${fuenteCompleta ? " · " + escapar(fuenteCompleta) : ""}</p>
+    ${e.resumen ? `<p class="resumen">${escapar(e.resumen)}</p>` : ""}
     <dl class="ficha">
       <div><dt>Población</dt><dd>${escapar(e.poblacion || "—")}</dd></div>
       <div><dt>Ámbito</dt><dd>${escapar(e.ambito || "—")}${e.pais ? " · " + escapar(e.pais) : ""}</dd></div>
       <div><dt>Participantes</dt><dd>${e.n_participantes ? e.n_participantes.toLocaleString("es-CO") : "No reportado"}</dd></div>
       <div><dt>Identificador</dt><dd>${escapar(e.codigo)}</dd></div>
+      ${extras}
     </dl>
     ${enlace ? `<p><a href="${escapar(enlace)}" target="_blank" rel="noopener">Abrir la fuente original</a></p>` : ""}
-    <div class="mapeo">
-      <h4>Intervenciones evaluadas</h4>
-      <div class="etiquetas">${e.intervenciones.map((i) => `<span class="etiqueta">${escapar(i.nombre)}</span>`).join("")}</div>
-      <h4>Desenlaces reportados</h4>
-      <div class="etiquetas">${e.desenlaces.map((d) => `<span class="etiqueta">${escapar(d.nombre)}</span>`).join("")}</div>
-    </div>`;
+    ${abstractHtml}
+    ${mapeoHtml}`;
   $("#modal-detalle").scrollTop = 0;
 }
 
@@ -607,13 +652,15 @@ function exportarCsv() {
   const estudios = estudiosFiltrados();
   if (!estudios.length) { avisar("No hay estudios que exportar con los filtros actuales.", "error"); return; }
   const columnas = [
-    "codigo", "titulo", "autores", "anio", "fuente", "tipo_estudio", "eje",
-    "poblacion", "ambito", "pais", "certeza", "hallazgo", "n_participantes",
-    "doi", "url", "estado",
+    "codigo", "titulo", "autores", "anio", "fuente", "volumen", "numero",
+    "tipo_estudio", "eje", "poblacion", "ambito", "pais", "certeza", "hallazgo",
+    "n_participantes", "doi", "url", "estado", "poblacion_especial",
+    "dominio_indicacion", "indicacion", "intervencion_texto", "desenlaces_texto",
   ];
-  const cabecera = [...columnas, "intervenciones", "desenlaces"];
+  const cabecera = [...columnas, "abstract", "intervenciones_mapa", "desenlaces_mapa"];
   const filas = estudios.map((e) => {
     const base = columnas.map((c) => e[c] ?? "");
+    base.push(e.abstract || "");
     base.push(e.intervenciones.map((i) => i.nombre).join(" | "));
     base.push(e.desenlaces.map((d) => d.nombre).join(" | "));
     return base;

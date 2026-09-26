@@ -75,7 +75,7 @@ function estudiosVisibles() {
     if (filtroEstado && e.estado !== filtroEstado) return false;
     if (filtroTipo && e.tipo_estudio !== filtroTipo) return false;
     if (!texto) return true;
-    return normalizar(`${e.titulo} ${e.autores} ${e.codigo} ${e.fuente}`).includes(texto);
+    return normalizar(`${e.titulo} ${e.autores} ${e.codigo} ${e.fuente} ${e.dominio_indicacion || ""} ${e.indicacion || ""}`).includes(texto);
   });
 }
 
@@ -97,6 +97,7 @@ function pintarEstudios() {
     const tr = document.createElement("tr");
     const cruces = e.intervenciones.length * e.desenlaces.length;
     const claseEstado = e.estado === "Verificada" ? "etiqueta--ok" : "etiqueta--alerta";
+    const dominio = (e.dominio_indicacion || "").split(",")[0].trim() || "—";
     tr.innerHTML = `
       <td style="font-weight:700;color:var(--tinta-suave)">${escapar(e.codigo)}</td>
       <td class="celda-titulo">${escapar(e.titulo)}
@@ -104,7 +105,7 @@ function pintarEstudios() {
       </td>
       <td>${e.anio || "—"}</td>
       <td>${escapar(e.tipo_estudio)}</td>
-      <td>${escapar(e.certeza)}</td>
+      <td style="max-width:160px;font-size:.8rem;color:var(--tinta-media)">${escapar(dominio)}</td>
       <td>${e.intervenciones.length} × ${e.desenlaces.length} = <b>${cruces}</b></td>
       <td><span class="etiqueta ${claseEstado}">${escapar(e.estado)}</span></td>
       <td><div class="acciones">
@@ -118,7 +119,7 @@ function pintarEstudios() {
       abrirFormularioEstudio(copia, true);
     });
     $('[data-accion="eliminar"]', tr).addEventListener("click", () =>
-      confirmarEliminacion(`/api/estudios/${e.id}`, `el estudio “${e.titulo}”`));
+      confirmarEliminacion(`/api/estudios/${e.id}`, `el estudio "${e.titulo}"`));
     cuerpo.appendChild(tr);
   });
 }
@@ -152,7 +153,7 @@ function pintarIntervenciones() {
       abrirFormularioTaxonomia("intervencion", i));
     $('[data-accion="eliminar"]', tr).addEventListener("click", () =>
       confirmarEliminacion(`/api/intervenciones/${i.id}`,
-        `la intervención “${i.nombre}”`,
+        `la intervención "${i.nombre}"`,
         n ? `Se desvinculará de ${n} estudio(s), que seguirán existiendo.` : ""));
     cuerpo.appendChild(tr);
   });
@@ -179,7 +180,7 @@ function pintarDesenlaces() {
       abrirFormularioTaxonomia("desenlace", d));
     $('[data-accion="eliminar"]', tr).addEventListener("click", () =>
       confirmarEliminacion(`/api/desenlaces/${d.id}`,
-        `el desenlace “${d.nombre}”`,
+        `el desenlace "${d.nombre}"`,
         n ? `Se desvinculará de ${n} estudio(s), que seguirán existiendo.` : ""));
     cuerpo.appendChild(tr);
   });
@@ -199,7 +200,7 @@ function pintarTaxonomia() {
     $('[data-accion="editar"]', tr).addEventListener("click", () =>
       abrirFormularioTaxonomia(tipo, item));
     $('[data-accion="eliminar"]', tr).addEventListener("click", () =>
-      confirmarEliminacion(`${url}/${item.id}`, `“${item.nombre}”`));
+      confirmarEliminacion(`${url}/${item.id}`, `"${item.nombre}"`));
     return tr;
   };
 
@@ -290,11 +291,19 @@ function abrirFormularioEstudio(estudio = null, esCopia = false) {
   $("#f-autores").value = v.autores || "";
   $("#f-anio").value = v.anio || "";
   $("#f-fuente").value = v.fuente || "";
+  $("#f-volumen").value = v.volumen || "";
+  $("#f-numero").value = v.numero || "";
   $("#f-pais").value = v.pais || "";
   $("#f-n").value = v.n_participantes || "";
   $("#f-doi").value = v.doi || "";
   $("#f-url").value = v.url || "";
   $("#f-resumen").value = v.resumen || "";
+  $("#f-abstract").value = v.abstract || "";
+  $("#f-poblacion-especial").value = v.poblacion_especial || "";
+  $("#f-dominio-indicacion").value = v.dominio_indicacion || "";
+  $("#f-indicacion").value = v.indicacion || "";
+  $("#f-intervencion-texto").value = v.intervencion_texto || "";
+  $("#f-desenlaces-texto").value = v.desenlaces_texto || "";
   opciones($("#f-tipo"), estado.catalogos.tipos_estudio, v.tipo_estudio || "Revisión sistemática");
   opciones($("#f-certeza"), estado.catalogos.certezas, v.certeza || "No evaluada");
   opciones($("#f-hallazgo"), estado.catalogos.hallazgos, v.hallazgo || "No concluyente");
@@ -323,11 +332,6 @@ $("#form-estudio").addEventListener("submit", async (ev) => {
   const datos = Object.fromEntries(new FormData(ev.target).entries());
   datos.intervenciones = seleccionDe($("#sel-intervenciones"));
   datos.desenlaces = seleccionDe($("#sel-desenlaces"));
-
-  if (!datos.intervenciones.length || !datos.desenlaces.length) {
-    $("#mensaje-estudio").textContent = "Selecciona al menos una intervención y un desenlace.";
-    return;
-  }
 
   const editando = estado.editando;
   try {
@@ -447,7 +451,49 @@ $("#btn-confirmar").addEventListener("click", async () => {
   }
 });
 
-/* ── Carga por lotes ────────────────────────────────────────────────── */
+/* ── Carga masiva desde Excel ───────────────────────────────────────── */
+$("#btn-importar-excel").addEventListener("click", async () => {
+  const salida = $("#resultado-importacion-excel");
+  const archivoInput = $("#archivo-excel");
+  const archivo = archivoInput.files[0];
+
+  if (!archivo) {
+    salida.innerHTML = '<span style="color:var(--alerta);font-weight:700">Selecciona un archivo .xlsx primero.</span>';
+    return;
+  }
+
+  if (!archivo.name.toLowerCase().endsWith(".xlsx")) {
+    salida.innerHTML = '<span style="color:var(--alerta);font-weight:700">El archivo debe ser un .xlsx (Excel).</span>';
+    return;
+  }
+
+  salida.innerHTML = '<span style="color:var(--tinta-media)">Subiendo y procesando…</span>';
+
+  const formData = new FormData();
+  formData.append("archivo", archivo);
+
+  try {
+    const resp = await fetch("/api/importar-excel", {
+      method: "POST",
+      body: formData,
+    });
+    const r = await resp.json();
+    if (!r.ok) throw new Error(r.error || "Error desconocido");
+
+    salida.innerHTML =
+      `<strong style="color:var(--exito)">${r.creados} registro(s) cargado(s).</strong>` +
+      (r.omitidos.length
+        ? `<div style="color:var(--alerta);margin-top:.4rem">Omitidos: ${escapar(r.omitidos.join(", "))}</div>`
+        : "");
+    avisar(`${r.creados} registro(s) cargado(s) desde Excel.`, "exito");
+    archivoInput.value = "";
+    await recargar();
+  } catch (err) {
+    salida.innerHTML = `<span style="color:var(--alerta);font-weight:700">${escapar(err.message)}</span>`;
+  }
+});
+
+/* ── Carga por lotes JSON ───────────────────────────────────────────── */
 const EJEMPLO = {
   estudios: [
     {
@@ -455,16 +501,14 @@ const EJEMPLO = {
       autores: "Apellido AA; Apellido BB",
       anio: 2024,
       fuente: "Nombre de la revista",
-      tipo_estudio: "Ensayo clínico aleatorizado",
-      poblacion: "Adultos",
-      ambito: "América Latina",
-      pais: "Colombia",
-      certeza: "Moderada",
-      hallazgo: "Favorable",
-      n_participantes: 180,
+      tipo_estudio: "Ensayo clínico",
+      poblacion_especial: "Población pediátrica",
+      dominio_indicacion: "Dolor y cuidados paliativos",
+      indicacion: "Dolor crónico no oncológico",
+      intervencion_texto: "CBD oral 300 mg/día",
+      desenlaces_texto: "Intensidad del dolor, calidad de vida",
+      abstract: "BACKGROUND: ...",
       doi: "10.0000/ejemplo",
-      url: "https://",
-      resumen: "Qué se evaluó, en quiénes y qué encontró.",
       intervenciones: ["I2", "I7"],
       desenlaces: ["O1", "O11"],
     },
