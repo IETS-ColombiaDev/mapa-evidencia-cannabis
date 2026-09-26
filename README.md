@@ -1,389 +1,438 @@
-# Mapa de Evidencia en Cannabis Medicinal — IETS
+# 🎫 Mapa de Evidencia en Cannabis Medicinal — IETS
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%2B-blue.svg?logo=python&logoColor=white)](https://www.python.org/)
-[![Framework](https://img.shields.io/badge/Framework-Flask%203.0%2B-black.svg?logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![Database](https://img.shields.io/badge/Database-SQLite3-003B57.svg?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
-[![Frontend](https://img.shields.io/badge/Frontend-HTML5%20%7C%20CSS3%20%7C%20Vanilla%20JS-F16529.svg?logo=javascript&logoColor=white)](https://developer.mozilla.org/)
-[![Status](https://img.shields.io/badge/Estado-Producci%C3%B3n%20%2F%20Activo-success.svg)](#)
-[![Institución](https://img.shields.io/badge/Instituci%C3%B3n-IETS%20Colombia-003189.svg)](https://www.iets.org.co/)
+<div align="center">
+  <img src="https://iets.org.co/wp-content/uploads/2021/05/Logo-IETS-color-1024x512.png" alt="Logo IETS" width="280"/>
+</div>
 
-Aplicación web institucional desarrollada para el **Instituto de Evaluación Tecnológica en Salud (IETS)**. Proporciona una herramienta interactiva de síntesis científica basada en el estándar internacional de los **Mapas de Evidencia y Brechas** (*Evidence and Gap Maps — EGM*, promovido por organizaciones como Campbell Collaboration y 3ie).
+<br/>
 
-Permite a investigadores biomédicos, profesionales de la salud, comités de evaluación y tomadores de decisiones regulatorias (Ministerio de Salud y Protección Social, Invima) explorar con rigor qué formulaciones y derivados de cannabis cuentan con evidencia clínica contrastada, para qué desenlaces terapéuticos, con qué nivel de certeza metodológica (GRADE) y dónde radican los vacíos críticos de investigación (*research gaps*).
-
----
-
-## Tabla de Contenido
-
-- [1. Características Principales](#1-características-principales)
-- [2. Arquitectura y Metodología](#2-arquitectura-y-metodología)
-  - [2.1 Taxonomía de Intervenciones (Filas)](#21-taxonomía-de-intervenciones-filas)
-  - [2.2 Dominios de Desenlace (Columnas)](#22-dominios-de-desenlace-columnas)
-  - [2.3 Jerarquía de Evidencia y Certeza GRADE](#23-jerarquía-de-evidencia-y-certeza-grade)
-- [3. Estructura del Proyecto](#3-estructura-del-proyecto)
-- [4. Instalación y Puesta en Marcha Local](#4-instalación-y-puesta-en-marcha-local)
-- [5. Panel de Administración](#5-panel-de-administración)
-- [6. Especificación de la API REST](#6-especificación-de-la-api-rest)
-- [7. Despliegue en Producción](#7-despliegue-en-producción)
-- [8. Navegación, Accesibilidad y Teclado](#8-navegación-accesibilidad-y-teclado)
-- [9. Protocolo de Verificación de Datos Semilla](#9-protocolo-de-verificación-de-datos-semilla)
-- [10. Seguridad y Consideraciones Técnicas](#10-seguridad-y-consideraciones-técnicas)
-- [11. Créditos y Licencia](#11-créditos-y-licencia)
+> **Autora principal:** Silvana Zapata  
+> **Coautores y soporte tecnológico:** Coordinación de TIC — Instituto de Evaluación Tecnológica en Salud (IETS)  
+> **Entidad:** Instituto de Evaluación Tecnológica en Salud (IETS), República de Colombia  
+> **Versión:** 1.0.0  
+> **Estado:** Operativo / Producción  
 
 ---
 
-## 1. Características Principales
+## 📋 Descripción
 
-- **Matriz Cruzada Bidimensional Interactiva**: Cruce matricial de 13 intervenciones farmacológicas y regulatorias contra 15 desenlaces clínicos y del sistema de salud.
-- **Visualización Científica en Tres Modos**:
-  - **Burbujas**: Representa el volumen de publicaciones con círculos proporcionales diferenciando síntesis de evidencia (turquesa) y estudios primarios (amarillo).
-  - **Densidad (Mapa de Calor)**: Gradiente monocromático que resalta la concentración de literatura por celda.
-  - **Certeza Máxima**: Muestra el nivel más alto de certeza metodológica reportado en cada intersección (Alta, Moderada, Baja, Muy baja).
-- **Detección Visual de Vacíos (*Research Gaps*)**: Celdas con trama rayada que identifican vacíos de investigación; incluye botón *«Resaltar vacíos»* para iluminación inmediata de brechas críticas.
-- **Filtrado Multidimensional en Tiempo Real**: Filtrado cruzado por tipo de diseño (ECA, revisiones sistemáticas, cohortes, etc.), certeza GRADE, dirección del hallazgo (favorable, mixto, sin diferencia, desfavorable), población diana, ámbito geográfico y década de publicación.
-- **Sincronización de Estado en la URL**: Los filtros y vistas activas se reflejan en los parámetros `URLSearchParams`, permitiendo compartir enlaces a vistas filtradas específicas.
-- **Arquitectura de Pestañas Superiores (Zero Scroll Overload)**: Interfaz organizada en vistas independientes:
-  - *Mapa interactivo*: Matriz protagónica con altura natural y amplia visualización sin scroll vertical interno.
-  - *Documentación técnica*: Informe institucional completo con 9 apartados estructurados y navegación lateral fija.
-  - *Cómo leerlo*: Resumen ejecutivo de interpretación y marco normativo colombiano en tiempo real.
-- **Exportación de Microdatos en CSV**: Descarga inmediata de los estudios filtrados en formato CSV normalizado con punto y coma (`;`) y BOM UTF-8 para apertura directa en Excel, R, Python, Stata o SPSS.
-- **Ficha Técnica Modal de Estudios**: Al hacer clic en cualquier celda, fila o columna, se despliega una ventana modal con los estudios asociados ordenados por certeza, resumen estructurado, población, tamaño de muestra (*n*), estado de verificación y enlaces a PubMed/DOI.
-- **Frontend Ligero sin Dependencias Externas**: Desarrollado en JavaScript vainilla y CSS corporativo institucional del IETS, garantizando máxima velocidad de carga y cero dependencias de empaquetadores como Webpack o Vite.
+El **Mapa de Evidencia en Cannabis Medicinal del IETS** es una plataforma científica, analítica e interactiva diseñada para la síntesis visual y estructurada del estado del conocimiento biomédico y clínico sobre el uso terapéutico del cannabis y sus derivados cannabinoides. Desarrollado para el **Instituto de Evaluación Tecnológica en Salud (IETS)**, el aplicativo se fundamenta en la metodología internacional de los **Mapas de Evidencia y Brechas** (*Evidence and Gap Maps — EGM*), promovida y estandarizada por organismos globales de síntesis científica como la *Campbell Collaboration* y *3ie*.
+
+La herramienta responde a los desafíos que enfrentan los tomadores de decisiones sanitarias, médicos especialistas, investigadores, evaluadores de tecnologías en salud y entidades rectoras del sistema de salud colombiano (Ministerio de Salud y Protección Social, Invima) al evaluar formulaciones de cannabis: heterogeneidad en composiciones, dispersión de la literatura clínica, disparidad metodológica y vacíos regulatorios.
+
+El sistema cruza matricialmente dos ejes analíticos fundamentales:
+- **Eje Vertical (Filas - 13 Intervenciones):** Agrupadas en 4 categorías taxonómicas que van desde cannabinoides con registro sanitario formal (CBD purificado, Nabiximoles, Dronabinol, Nabilona), pasando por extractos y fórmulas magistrales (predominio THC, predominio CBD, balanceados, espectro completo), flor y vías no convencionales (vaporizado, fumado, formulaciones tópicas), hasta gobernanza y prescripción médica.
+- **Eje Horizontal (Columnas - 15 Desenlaces):** Clasificados en 4 dominios clínicos y sistémicos: Eficacia terapéutica (dolor crónico, espasticidad, emesis, epilepsia refractaria, apetito, sueño, trastornos neuropsiquiátricos, movimientos anormales), Calidad de vida y funcionalidad, Seguridad y toxicología (eventos adversos, efectos cognitivos, dependencia), e Impacto en el sistema de salud (ahorro de otros fármacos, costo-efectividad y uso de servicios).
+
+Cada intersección de la matriz consolida el volumen de publicaciones clasificando visualmente entre **síntesis de evidencia** (revisiones sistemáticas, metaanálisis, GPC, ETS) y **estudios primarios** (ensayos clínicos aleatorizados, cohortes, estudios observacionales), evaluados bajo el marco metodológico **GRADE** (*Grading of Recommendations Assessment, Development and Evaluation*) y señalando de forma unívoca las **brechas de investigación** (*research gaps*) donde se requiere generar nueva evidencia empírica.
 
 ---
 
-## 2. Arquitectura y Metodología
+## 🌐 URL del aplicativo
 
-El mapa adopta la estructura bidimensional estandarizada para revisiones panorámicas sistemáticas de tecnologías sanitarias:
+### Entorno local de desarrollo y análisis
+- **Visualizador público (Mapa interactivo):** [http://localhost:5000](http://localhost:5000)
+- **Panel de administración de estudios y taxonomías:** [http://localhost:5000/admin](http://localhost:5000/admin)
 
-### 2.1 Taxonomía de Intervenciones (Filas)
+### Entorno de producción institucional
+- **Servicio en la nube (Render):** [https://mapa-evidencia-cannabis.onrender.com](https://mapa-evidencia-cannabis.onrender.com)
+- **Dominio institucional IETS (Configurable vía CNAME):** `https://evidenciacannabis.iets.org.co`
 
-Organizadas en cuatro categorías principales (**C1 a C4**) que comprenden 13 intervenciones específicas (**I1 a I13**):
-
-| Código | Categoría | Intervención | Descripción Farmacológica / Sanitaria |
-|:---:|:---|:---|:---|
-| **I1** | C1. Registrados | Cannabidiol purificado (grado farmacéutico) | Solución oral de CBD altamente purificado (>98%, ej. Epidiolex) para encefalopatías epilépticas farmacorresistentes (Dravet, Lennox-Gastaut, Esclerosis Tuberosa). |
-| **I2** | C1. Registrados | Nabiximoles (THC:CBD 1:1 oromucoso) | Spray oromucoso estandarizado con proporción equimolar (ej. Sativex) indicado en espasticidad por esclerosis múltiple. |
-| **I3** | C1. Registrados | Dronabinol (THC sintético) | Isómero sintético oral del Δ9-THC (ej. Marinol) indicado en emesis por quimioterapia y anorexia en VIH/SIDA. |
-| **I4** | C1. Registrados | Nabilona (análogo sintético del THC) | Cannabinoide oral análogo al THC (ej. Cesamet) para náuseas refractarias y dolor espástico. |
-| **I5** | C2. Magistrales | Extracto con predominio de THC | Fórmulas magistrales con ratio THC:CBD alto (>5:1 o solo THC) para dolor oncológico o cuidados paliativos. |
-| **I6** | C2. Magistrales | Extracto con predominio de CBD | Fórmulas magistrales con ratio CBD:THC alto (>10:1 o solo CBD) sin registro formal. |
-| **I7** | C2. Magistrales | Extracto balanceado THC:CBD | Preparaciones magistrales con proporciones comparables de THC y CBD (~1:1 a 1:2). |
-| **I8** | C2. Magistrales | Fórmula magistral de espectro completo | Extractos crudos o descarboxilados que preservan el perfil completo de cannabinoides menores y terpenos. |
-| **I9** | C3. Flor y otras vías | Cannabis vaporizado | Inhalación por calentamiento térmico de inflorescencias a 180–210°C, minimizando compuestos pirolíticos. |
-| **I10** | C3. Flor y otras vías | Cannabis fumado | Inhalación por combustión directa; históricamente evaluada en dolor neuropático inicial, con toxicidad respiratoria. |
-| **I11** | C3. Flor y otras vías | Formulaciones tópicas y transdérmicas | Geles, ungüentos y parches de acción local o transdérmica sistémica con baja penetración cerebral. |
-| **I12** | C4. Gobernanza | Programas de acceso regulado y registros | Sistemas de acceso controlado y cohortes de farmacovigilancia activa en salud pública. |
-| **I13** | C4. Gobernanza | Formación y guías para prescriptores | Algoritmos de dosificación, guías clínicas y educación médica para mitigar riesgos e interacciones. |
-
-### 2.2 Dominios de Desenlace (Columnas)
-
-Comprende 15 desenlaces distribuidos en cuatro dominios clave (**D1 a D4**):
-
-| Código | Dominio | Desenlace | Medición e Indicador Clínico |
-|:---:|:---|:---|:---|
-| **O1** | D1. Eficacia | Dolor crónico | Reducción ≥30% o ≥50% en escalas analógicas (EVA/NRS) en dolor neuropático, musculoesquelético u oncológico. |
-| **O2** | D1. Eficacia | Espasticidad | Modificaciones en la Escala de Ashworth Modificada o autoinforme numérico en esclerosis múltiple. |
-| **O3** | D1. Eficacia | Náusea y vómito | Control de emesis inducida por quimioterapia citotóxica (CINV). |
-| **O4** | D1. Eficacia | Crisis epilépticas | Reducción porcentual de crisis convulsivas mayores al mes. |
-| **O5** | D1. Eficacia | Apetito y peso | Ganancia ponderal y consumo calórico en síndromes de desgaste asociados a cáncer o VIH. |
-| **O6** | D1. Eficacia | Sueño | Latencia del sueño, despertares nocturnos y arquitectura del descanso. |
-| **O7** | D1. Eficacia | Ansiedad, depresión y TEPT | Puntajes en escalas estandarizadas (GAD-7, PHQ-9, CAPS-5). |
-| **O8** | D1. Eficacia | Movimientos anormales | Severidad de tics en síndrome de Tourette, temblor y discinesias por levodopa. |
-| **O9** | D2. Calidad de vida | Calidad de vida | Cuestionarios validados globales o específicos (EQ-5D, SF-36, EORTC QLQ-C30). |
-| **O10** | D2. Calidad de vida | Funcionalidad | Desempeño físico cotidiano, autonomía y retorno laboral. |
-| **O11** | D3. Seguridad | Eventos adversos | Incidencia de eventos adversos totales, eventos graves (SAE) y retiros por toxicidad. |
-| **O12** | D3. Seguridad | Efectos psiquiátricos y cognitivos | Episodios psicóticos agudos, sedación profunda, disforia y alteración de memoria de trabajo. |
-| **O13** | D3. Seguridad | Dependencia y accidentes | Trastorno por uso de cannabis (CUD), síndrome de abstinencia y caídas/accidentes vehiculares. |
-| **O14** | D4. Sistema de salud | Otros medicamentos | Efecto ahorrador de opioides (*opioid-sparing*), antiepilépticos o benzodiacepinas. |
-| **O15** | D4. Sistema de salud | Costos y uso de servicios | Razones de costo-efectividad incremental (ICER), impacto presupuestal y visitas a urgencias. |
-
-### 2.3 Jerarquía de Evidencia y Certeza GRADE
-
-El sistema clasifica las publicaciones en dos grandes categorías visuales mutuamente excluyentes:
-
-- **Círculo Turquesa (`--turquesa: #289E93`) — Síntesis de Evidencia**:
-  - Revisiones sistemáticas con metaanálisis.
-  - Revisiones sistemáticas Cochrane o PRISMA.
-  - Revisiones de revisiones (*overviews*).
-  - Guías de Práctica Clínica (GPC).
-  - Evaluaciones de Tecnología Sanitaria (ETS).
-- **Círculo Amarillo (`--amarillo: #EAA000`) — Estudios Primarios**:
-  - Ensayos Clínicos Aleatorizados (ECA).
-  - Ensayos cuasi-experimentales y no aleatorizados.
-  - Estudios observacionales analíticos (cohortes prospectivas y casos-controles).
-  - Evaluaciones económicas en salud (costo-efectividad, costo-utilidad).
-  - Series y reportes de casos.
-
-#### Niveles de Confianza Metodológica (GRADE)
-- **Alta**: Muy alta certeza de que el verdadero efecto coincide con el estimado.
-- **Moderada**: Confianza moderada; el verdadero efecto probablemente sea cercano al reportado.
-- **Baja**: Confianza limitada; nuevas investigaciones probablemente cambiarán el resultado.
-- **Muy baja**: Incertidumbre sustancial; estimación metodológicamente frágil.
+### Endpoints principales de la API REST
+- `GET /api/salud`: Verificación de disponibilidad y conteo total de estudios cargados.
+- `GET /api/datos`: Dataset íntegro normalizado (matriz, taxonomías, estudios, relaciones y normativa).
+- `GET /api/catalogos`: Listas maestras controladas (diseños, certeza GRADE, hallazgos, poblaciones, ámbitos).
 
 ---
 
-## 3. Estructura del Proyecto
+## 📱 Responsive design
 
-```
-mapa-evidencia-cannabis/
-├── app.py                      # Servidor Flask, rutas web y endpoints de la API REST
-├── database.py                 # Esquema SQLite, configuración de catálogos y carga semilla
-├── requirements.txt            # Dependencias de producción (Flask, Gunicorn)
-├── Procfile                    # Comando de inicio para servidores PaaS (Gunicorn)
-├── render.yaml                 # Manifiesto de despliegue automatizado en Render con disco persistente
-├── README.md                   # Documentación técnica integral
-│
-├── data/
-│   ├── taxonomia.py            # Definición canónica de filas (intervenciones) y columnas (desenlaces)
-│   └── estudios_semilla.py     # Conjunto semilla de 55 estudios biomédicos y normativa colombiana
-│
-├── templates/
-│   ├── index.html              # Vista principal: Mapa interactivo, Documentación y Cómo leerlo
-│   └── admin.html              # Panel de administración: Gestión CRUD, filtros y carga masiva
-│
-└── static/
-    ├── css/
-    │   └── app.css             # Sistema de diseño institucional IETS (variables, grid, tipografía)
-    └── js/
-        ├── mapa.js             # Lógica del mapa: renderizado de matriz, filtros, tooltip y exportación
-        └── admin.js            # Lógica de administración: tablas reactivas, formularios modales y API
-```
+El aplicativo implementa una arquitectura de interfaz adaptativa (*Responsive Web Design*) desarrollada con Vanilla CSS y CSS Grid nativo, optimizada para ofrecer una experiencia fluida e idéntica en cualquier factor de forma:
+
+- **Estaciones de trabajo de escritorio y pantallas de alta resolución (Monitores 4K / Ultrawide / Desktop > 1200px):**
+  - Matriz bidimensional protagónica a pantalla ancha con altura natural y renderizado instantáneo.
+  - Encabezados de categorías y dominios con posición fija (*sticky headers*) que permanecen visibles durante el paneo horizontal y vertical.
+  - Panel superior de filtros y controles multidimensionales organizados en cuadrícula compacta y accesible.
+  - Arquitectura de pestañas superiores (*Zero Scroll Overload*) para alternar entre el **Mapa Interactivo**, la **Documentación Técnica Metodológica** y la guía **Cómo Leerlo**, eliminando el desplazamiento vertical forzado.
+
+- **Dispositivos portátiles y tabletas (Tablets y Laptops 768px – 1199px):**
+  - Contenedor de matriz con desplazamiento horizontal táctil suave y amortiguado (*touch-momentum scrolling*).
+  - Columnas fijas de intervenciones para no perder el contexto de la molécula analizada al desplazarse hacia desenlaces lejanos.
+  - Ventanas modales de estudios adaptadas con márgenes dinámicos y barras de desplazamiento internas accesibles.
+
+- **Teléfonos inteligentes y pantallas móviles (Mobile < 768px):**
+  - Transformación táctil de las fichas técnicas modales en hojas de diálogo superpuestas de pantalla completa con botones de cierre accesibles.
+  - Panel de filtros colapsable con indicador de filtros activos para maximizar el área visible.
+  - Soporte completo para navegación por toques y gestos, además de compatibilidad estricta con lectores de pantalla y navegación por teclado (atajo `/` para búsqueda, `Flechas` direccionales, `Enter` y `Esc`).
 
 ---
 
-## 4. Instalación y Puesta en Marcha Local
+## 🔐 Acceso y seguridad
 
-### Requisitos Previos
-- **Python 3.10** o superior instalado en el sistema.
-- Gestor de paquetes `pip`.
+El sistema adopta un modelo de gobernanza de información científica con dos niveles de interacción:
 
-### Paso 1: Clonar y Navegar al Repositorio
-```bash
-git clone <url-del-repositorio>
+1. **Portal Público de Acceso Abierto (`/`):**
+   - Acceso irrestricto y sin barreras para la comunidad científica, profesionales de la salud, entidades estatales y ciudadanía en general, en consonancia con la política de datos abiertos y transparencia del IETS.
+   - Rutas públicas de consulta de solo lectura (`GET /`, `GET /api/datos`, `GET /api/catalogos`, `GET /api/salud`).
+
+2. **Panel de Gestión y Curaduría de Evidencia (`/admin`):**
+   - Espacio restringido para investigadores y administradores metodológicos del IETS, habilitando la creación, actualización, validación y eliminación de estudios clínicos, además del mantenimiento de la taxonomía.
+   - En despliegues locales de desarrollo no exige inicio de sesión; para despliegues en entornos de producción institucional, se implementan las siguientes capas de seguridad:
+     - **Autenticación HTTP Básica / Digest en Proxy Inverso:** Configuración obligatoria a nivel de Nginx o Ingress Controller con credenciales criptográficas seguras.
+     - **Filtrado de Red y VPN Corporativa:** Restricción de tráfico al endpoint `/admin` y a los métodos `POST`, `PUT` y `DELETE` mediante listas blancas de direcciones IP institucionales o redes privadas virtuales (VPN IETS).
+     - **Protección contra Inyección SQL:** Todas las transacciones a la base de datos SQLite utilizan parámetros enlazados nativos (`?`), previniendo cualquier vulnerabilidad de inyección SQL.
+     - **Mitigación de Cross-Site Scripting (XSS):** Todo el texto inyectado en el DOM es sanitizado mediante `textContent` en Vanilla JavaScript y escape seguro nativo del motor de plantillas Jinja2 de Flask.
+     - **Cabeceras de Seguridad HTTP:** Cabeceras preventivas `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN` y `X-XSS-Protection: 1; mode=block`.
+
+---
+
+## ✨ Características principales
+
+- **Matriz Cruzada Bidimensional Interactiva:** Cruce dinámico de 13 intervenciones farmacológicas y regulatorias contra 15 desenlaces clínicos y de salud pública.
+- **Visualización Científica en Tres Modos Intercambiables:**
+  - **Modo Burbujas:** Visualización proporcional del volumen de estudios por celda, diferenciando con círculos bicolores la **síntesis de evidencia** (color turquesa `#289E93`) y los **estudios primarios** (color amarillo `#EAA000`).
+  - **Modo Densidad (Mapa de Calor):** Gradiente cromático continuo que refleja visualmente la concentración de literatura por intersección clínica.
+  - **Modo Certeza Máxima (GRADE):** Visualiza en cada casilla el nivel máximo de certidumbre metodológica reportado (Alta, Moderada, Baja, Muy baja).
+- **Detección Automática de Brechas (*Research Gaps*):**
+  - Identificación gráfica inmediata de celdas con ausencia de evidencia mediante trama rayada (*hatch pattern*).
+  - Botón interactivo *«Resaltar vacíos»* que ilumina al instante las brechas de conocimiento prioritarias para guiar agendas de investigación biomédica.
+- **Filtrado Multidimensional en Tiempo Real:**
+  - Filtrado cruzado simultáneo por diseño de estudio (ECA, revisiones sistemáticas, cohortes, etc.), nivel de certeza GRADE, dirección del hallazgo (favorable, mixto, sin diferencia, desfavorable), grupo poblacional (adultos, pediatría, adultos mayores), ámbito geográfico y período cronológico.
+- **Sincronización de Estado en la URL (`URLSearchParams`):**
+  - Cada selección de filtros, pestaña o modo de vista se codifica automáticamente en los parámetros de la URL, permitiendo compartir enlaces directos a análisis específicos o reproducir hallazgos en comités técnicos.
+- **Ficha Técnica Modal de Estudios:**
+  - Al interactuar con cualquier celda, fila o columna, se despliega una ficha técnica detallada que lista los estudios correspondientes, ordenados por jerarquía de certeza, con resumen estructurado, tamaño de muestra ($n$), país, estado de validación y accesos directos a PubMed/DOI.
+- **Exportación Normalizada de Microdatos (CSV):**
+  - Botón de descarga directa con generación en tiempo real de archivos CSV codificados en UTF-8 con marca de orden de bytes (BOM) y delimitador punto y coma (`;`), listos para análisis en Excel, R, Python, SPSS o Stata.
+- **Panel Administrativo CRUD y Carga Masiva por Lotes:**
+  - Módulo en `/admin` con formularios de gestión integral, filtros rápidos por estado (*«Por verificar»* vs *«Verificada»*) y motor de importación masiva por lotes en formato JSON estructurado.
+- **Documentación Técnica Integrada y Marco Normativo Colombiano:**
+  - 9 capítulos técnicos con navegación lateral fija y resumen ejecutivo sobre el marco regulatorio del cannabis medicinal en Colombia (Ley 1787 de 2016, Decreto 811 de 2021 y Resoluciones reglamentarias).
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+### Backend
+- **Python (3.10+ / 3.12+):** Lenguaje principal para la lógica de servidor y procesamiento de datos.
+- **Flask (v3.1.3):** Microframework web para el enrutamiento HTTP, renderizado modular de plantillas y construcción de la API RESTful.
+- **Gunicorn (v23.0.0):** Servidor HTTP WSGI para entornos de producción de alto rendimiento en sistemas basados en UNIX/Linux.
+
+### Frontend
+- **HTML5 Semántico:** Marcado estructurado enfocado en accesibilidad, etiquetas de datos abiertos y compatibilidad con estándares W3C.
+- **Vanilla CSS3 (Sistema de Diseño IETS):** Hoja de estilos corporativa moderna estructurada mediante variables CSS, paleta cromática institucional (`#003189`, `#289E93`, `#EAA000`), sombras sutiles, microanimaciones y diseño responsivo fluido sin necesidad de preprocesadores pesados.
+- **Vanilla JavaScript (ES6+):** Programación reactiva nativa para la manipulación del DOM, gestión de filtros en tiempo real, renderizado de burbujas dinámicas en la matriz, sincronización de la URL y modales accesibles, con cero dependencias de empaquetadores como Webpack o Vite.
+- **Tipografía Google Fonts:** Integración de la familia tipográfica moderna *Inter* con optimización de carga vía `preconnect`.
+
+### Base de datos
+- **SQLite3:** Motor de base de datos relacional ligero, embebido y de alto desempeño con soporte completo para transacciones ACID.
+- **Integridad Referencial Estricta:** Claves foráneas activadas explícitamente mediante `PRAGMA foreign_keys = ON` con eliminación en cascada (`ON DELETE CASCADE`) para mantener la coherencia de las tablas de unión M:N.
+- **Esquema Relacional Normalizado:**
+  - `categorias_intervencion` y `intervenciones` (filas de la matriz).
+  - `dominios_desenlace` y `desenlaces` (columnas de la matriz).
+  - `estudios` (catálogo bibliográfico y evaluación metodológica).
+  - `estudio_intervencion` y `estudio_desenlace` (relaciones muchos a muchos).
+  - `normativa` (marco legal y regulatorio colombiano).
+
+### Librerías e integraciones
+- **Python Standard Library:** Uso exclusivo de módulos estándar (`sqlite3`, `contextlib`, `os`, `json`) que reducen la superficie de ataque y garantizan portabilidad absoluta.
+- **FontAwesome / Iconografía Vectorial SVG:** Iconos SVG limpios incrustados de forma nativa para optimizar el peso de transferencia y acelerar los tiempos de despliegue.
+
+---
+
+## 🚀 Instalación
+
+### Requisitos previos
+- **Python 3.10** o superior instalado en el equipo.
+- Gestor de paquetes **pip** configurado en el PATH del sistema.
+- Cliente de control de versiones **Git**.
+
+---
+
+### Opción A: Instalación en Windows (PowerShell)
+
+#### 1. Clonar el repositorio institucional
+```powershell
+git clone https://github.com/IETS-ColombiaDev/mapa-evidencia-cannabis.git
 cd mapa-evidencia-cannabis
 ```
 
-### Paso 2: Crear y Activar un Entorno Virtual
-En Windows (PowerShell):
+#### 2. Crear y activar el entorno virtual
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
+> *Nota: Si la política de ejecución de scripts de PowerShell bloquea la activación, ejecute previamente:*  
+> `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`
 
-En Linux / macOS (Bash):
+#### 3. Instalar dependencias del proyecto
+```powershell
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+#### 4. Inicializar la base de datos (con catálogo semilla)
+```powershell
+python database.py
+```
+
+#### 5. Iniciar el servidor local de desarrollo
+```powershell
+python app.py
+```
+El aplicativo estará disponible en `http://localhost:5000`.
+
+---
+
+### Opción B: Instalación en macOS / Linux (Bash / Zsh)
+
+#### 1. Clonar el repositorio
+```bash
+git clone https://github.com/IETS-ColombiaDev/mapa-evidencia-cannabis.git
+cd mapa-evidencia-cannabis
+```
+
+#### 2. Crear y activar el entorno virtual
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### Paso 3: Instalar Dependencias
+#### 3. Instalar requerimientos
 ```bash
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-### Paso 4: Inicializar la Base de Datos SQLite
-La base de datos se inicializa automáticamente al arrancar la aplicación si no existe el archivo `mapa_cannabis.db`. Si deseas regenerarla manualmente desde cero con los 55 estudios semilla:
+#### 4. Inicializar la base de datos relacional
 ```bash
-python database.py
+python3 database.py
 ```
 
-### Paso 5: Iniciar el Servidor de Desarrollo
+#### 5. Ejecutar la aplicación
 ```bash
-python app.py
-```
-El servicio quedará disponible en:
-```
-http://localhost:5000
+python3 app.py
 ```
 
-### Variables de Entorno Opcionales
-| Variable | Descripción | Valor por Defecto |
-|:---|:---|:---|
-| `PORT` | Puerto de escucha del servidor HTTP | `5000` |
-| `DEBUG` | Habilita el modo de depuración y recarga en caliente de Flask | `False` (desactivado) |
-| `MAPA_DB_PATH` | Ruta absoluta o relativa del archivo SQLite | `./mapa_cannabis.db` |
+---
 
-Ejemplo de ejecución con depuración en Windows PowerShell:
+### Opción C: Despliegue con Gunicorn (Entornos de Producción Linux)
+Para ejecutar la aplicación con múltiples trabajadores concurrentes en un servidor de producción:
+```bash
+gunicorn app:app --bind 0.0.0.0:5000 --workers 3 --threads 2 --timeout 60
+```
+
+---
+
+## ⚙️ Configuración
+
+### Web.config (variables clave)
+
+El comportamiento de la plataforma puede ser parametrizado mediante variables de entorno en el sistema operativo, archivos `.env` o en el panel de control de la nube (como Render o Kubernetes):
+
+| Variable de Entorno | Descripción | Valor por Defecto | Ámbito de Uso |
+|:---|:---|:---|:---|
+| `PORT` | Puerto TCP de escucha para el servidor HTTP | `5000` | Local / Producción |
+| `DEBUG` | Activa el modo de depuración de Flask y recarga en caliente | `False` | Solo Desarrollo |
+| `MAPA_DB_PATH` | Ruta absoluta o relativa al archivo de base de datos SQLite | `./mapa_cannabis.db` | Local / Producción |
+| `PYTHON_VERSION` | Versión del intérprete en entornos de despliegue PaaS | `3.12.4` | Render / PaaS |
+
+Ejemplo de configuración en entorno local (PowerShell):
 ```powershell
+$env:PORT="5000"
 $env:DEBUG="1"
+$env:MAPA_DB_PATH="./mapa_cannabis.db"
 python app.py
 ```
 
 ---
 
-## 5. Panel de Administración
+#### Conexiones a datos
 
-El panel de administración se encuentra en:
-```
-http://localhost:5000/admin
-```
+La aplicación se comunica con un motor relacional SQLite local o montado en un volumen persistente. La conexión es administrada centralizadamente mediante un gestor de contexto seguro en [database.py](file:///Users/nicolasvargas/Documents/GitHub/mapa-evidencia-cannabis/database.py) con soporte para reconexión automática y rollback ante fallos.
 
-### Funcionalidades del Panel:
-1. **Gestión Completa de Estudios**:
-   - Creación manual con selección múltiple de intervenciones y desenlaces.
-   - Edición de metadatos bibliográficos, certeza GRADE, dirección del efecto, número de pacientes y URL/DOI.
-   - Eliminación directa con confirmación.
-2. **Filtro Rápido de Calidad**:
-   - Filtro directo por estado: *«Por verificar»* vs *«Verificada»*.
-   - Búsqueda textual sobre título, autores y revista.
-3. **Carga Masiva por Lotes (Batch Import)**:
-   - Formulario de importación directa vía JSON estructurado.
-4. **Mantenimiento de Taxonomías**:
-   - Los catálogos de categorías, dominios, intervenciones y desenlaces pueden extenderse mediante la API interna.
+##### Diccionario de datos principal:
+
+1. **`categorias_intervencion`**: Agrupaciones taxonómicas de intervenciones (`id`, `codigo`, `nombre`, `descripcion`, `orden`).
+2. **`intervenciones`**: Listado de intervenciones farmacológicas y de gobernanza (`id`, `codigo`, `categoria_id`, `nombre`, `descripcion`, `orden`).
+3. **`dominios_desenlace`**: Agrupaciones funcionales de desenlaces (`id`, `codigo`, `nombre`, `descripcion`, `orden`).
+4. **`desenlaces`**: Desenlaces clínicos, de calidad de vida y de sistema (`id`, `codigo`, `dominio_id`, `nombre`, `descripcion`, `orden`).
+5. **`estudios`**: Registro estructurado de la literatura científica analizada:
+   - `id`: Identificador numérico primario.
+   - `titulo`: Título original de la publicación.
+   - `autores`: Cita bibliográfica estandarizada de autores.
+   - `anio`: Año de publicación.
+   - `fuente`: Revista indexada, editorial u organismo emisor.
+   - `tipo_estudio`: Clasificación del diseño metodológico (ECA, revisión sistemática, etc.).
+   - `poblacion`: Grupo etario o subpoblación clínica.
+   - `ambito`: Cobertura geográfica o país del estudio.
+   - `pais`: País o carácter multicéntrico.
+   - `certeza`: Grado de certidumbre metodológica GRADE (*Alta, Moderada, Baja, Muy baja, No evaluada*).
+   - `hallazgo`: Dirección observada del efecto (*Favorable, Mixto, Sin diferencia, Desfavorable, No concluyente*).
+   - `n_participantes`: Tamaño de la muestra poblacional analizada.
+   - `doi` y `url`: Enlaces directos a repositorios PubMed, Crossref o revistas científicas.
+   - `resumen`: Resumen estructurado del hallazgo clave.
+   - `estado`: Estado de auditoría metodológica (*Por verificar* o *Verificada*).
+6. **`estudio_intervencion` & `estudio_desenlace`**: Tablas de asociación relacional M:N con cascada de eliminación.
+7. **`normativa`**: Catálogo histórico y vigente del marco legal colombiano del cannabis medicinal.
 
 ---
 
-## 6. Especificación de la API REST
+#### Configuración de almacenamiento
 
-Todas las respuestas exitosas devuelven `{"ok": true, ...}` y las excepciones `{"ok": false, "error": "motivo"}` con su código HTTP correspondiente.
+El aplicativo gestiona su persistencia de manera autónoma en disco:
 
-### Endpoints de Consulta y Operación
+- **Almacenamiento Local:** Los datos se escriben en el archivo local `mapa_cannabis.db`.
+- **Almacenamiento en la Nube (Render Persistent Disk / Cloud Storage):**
+  - En plataformas PaaS/Docker con sistemas de archivos efímeros, es **obligatorio** montar un volumen de almacenamiento persistente (disco SSD de al menos 1 GB) en la ruta `/var/data`.
+  - La variable de entorno correspondiente debe definirse como:
+    ```bash
+    MAPA_DB_PATH=/var/data/mapa_cannabis.db
+    ```
+- **Copias de Seguridad Periódicas (Backups):**
+  - Dado que SQLite encapsula toda la base de datos en un único archivo, se recomienda programar una sincronización periódica hacia servicios de almacenamiento institucional (OneDrive, Google Drive o Azure Blob Storage) utilizando el comando seguro de respaldo en caliente de SQLite:
+    ```bash
+    sqlite3 /var/data/mapa_cannabis.db ".backup '/var/data/backups/mapa_cannabis_$(date +%Y%m%d).db'"
+    ```
 
-| Método | Endpoint | Parámetros / Cuerpo | Descripción |
-|:---:|:---|:---|:---|
-| `GET` | `/api/salud` | Ninguno | Health check del servicio. Retorna el número de estudios indexados. |
-| `GET` | `/api/datos` | Ninguno | Estructura completa de la matriz, taxonomías, normativa y estudios con sus relaciones M:N. |
-| `GET` | `/api/catalogos` | Ninguno | Listas controladas de tipos de estudio, certeza, hallazgos, poblaciones y ámbitos. |
-| `POST` | `/api/estudios` | JSON con datos del estudio | Crea un nuevo estudio y sus relaciones cruzadas. |
-| `PUT` | `/api/estudios/<id>` | JSON con datos modificados | Actualiza la información y relaciones de un estudio existente. |
-| `DELETE` | `/api/estudios/<id>` | Ninguno | Elimina permanentemente el estudio y sus relaciones en cascada. |
-| `POST` | `/api/intervenciones` | `{"codigo", "categoria_id", "nombre", "descripcion", "orden"}` | Crea una nueva fila en el mapa. |
-| `PUT` | `/api/intervenciones/<id>` | JSON de intervención | Actualiza una intervención existente. |
-| `DELETE` | `/api/intervenciones/<id>` | Ninguno | Elimina una intervención y sus relaciones. |
-| `POST` | `/api/desenlaces` | `{"codigo", "dominio_id", "nombre", "descripcion", "orden"}` | Crea una nueva columna en el mapa. |
-| `PUT` | `/api/desenlaces/<id>` | JSON de desenlace | Actualiza un desenlace existente. |
-| `DELETE` | `/api/desenlaces/<id>` | Ninguno | Elimina un desenlace y sus relaciones. |
-| `POST` | `/api/importar` | `{"estudios": [...]}` | Inserción masiva por lotes a partir de códigos de intervención y desenlace. |
+---
 
-### Ejemplo: Creación de un Estudio (`POST /api/estudios`)
-```json
-{
-  "titulo": "Efficacy of Cannabidiol in Patients with Treatment-Resistant Dravet Syndrome",
-  "autores": "Devinsky O; Cross JH; Laux L; et al.",
-  "anio": 2017,
-  "fuente": "New England Journal of Medicine",
-  "tipo_estudio": "Ensayo clínico aleatorizado",
-  "poblacion": "Pediatría",
-  "ambito": "Global",
-  "pais": "Multicéntrico",
-  "certeza": "Alta",
-  "hallazgo": "Favorable",
-  "n_participantes": 120,
-  "doi": "10.1056/NEJMoa1611618",
-  "url": "https://doi.org/10.1056/NEJMoa1611618",
-  "resumen": "Ensayo pivotal doble ciego que demostró reducción significativa de crisis convulsivas...",
-  "estado": "Verificada",
-  "intervenciones": [1],
-  "desenlaces": [4, 9, 11]
-}
-```
+#### Configuración de correo (SMTP)
+> *(Opcional / Proyección de integración institucional)*
 
-### Ejemplo: Importación Masiva por Códigos (`POST /api/importar`)
-```json
-{
-  "estudios": [
-    {
-      "titulo": "Cannabinoids for Medical Use: A Systematic Review and Meta-analysis",
-      "autores": "Whiting PF; Wolff RF; Deshpande S; et al.",
-      "anio": 2015,
-      "fuente": "JAMA",
-      "tipo_estudio": "Revisión sistemática con metaanálisis",
-      "certeza": "Moderada",
-      "hallazgo": "Favorable",
-      "intervenciones": ["I1", "I2", "I3"],
-      "desenlaces": ["O1", "O2", "O3", "O11"]
-    }
-  ]
-}
+Para despliegues corporativos donde se requiera el envío automático de notificaciones a los revisores de evidencia (por ejemplo, al registrarse un nuevo estudio en estado *«Por verificar»* o al culminar una importación por lotes), se contemplan las siguientes variables opcionales:
+
+```ini
+SMTP_HOST=smtp.office365.com
+SMTP_PORT=587
+SMTP_USER=notificaciones@iets.org.co
+SMTP_PASSWORD=****************
+SMTP_USE_TLS=True
+SMTP_DESTINATARIOS_ALERTA=coordinaciontic@iets.org.co,evidencia@iets.org.co
 ```
 
 ---
 
-## 7. Despliegue en Producción
+## 📂 Estructura del proyecto
 
-### Despliegue en Render
-El proyecto incluye configuración nativa lista para producción mediante `render.yaml` y `Procfile`:
-
-1. Conecta el repositorio GitHub / GitLab a tu cuenta de Render.
-2. Render detectará automáticamente el archivo `render.yaml`:
-   - **Entorno de ejecución**: Python 3.
-   - **Comando de construcción**: `pip install -r requirements.txt`.
-   - **Comando de inicio**: `gunicorn app:app --bind 0.0.0.0:$PORT --workers 2`.
-   - **Disco Persistente (Imprescindible)**: Monta un volumen persistente en `/var/data` y define la variable de entorno:
-     ```bash
-     MAPA_DB_PATH=/var/data/mapa_cannabis.db
-     ```
-   > [!IMPORTANT]
-   > El disco persistente es crítico. Sin él, el sistema de archivos efímero de los contenedores reiniciará la base de datos a su estado semilla inicial con cada despliegue o reinicio automático.
-
-### Despliegue en Servidor Propio (Linux / VPS con Gunicorn y Nginx)
-1. Instala los requerimientos en un entorno virtual.
-2. Configura un servicio `systemd` para ejecutar Gunicorn:
-   ```ini
-   [Unit]
-   Description=Gunicorn instance for Mapa de Evidencia Cannabis IETS
-   After=network.target
-
-   [Service]
-   User=www-data
-   Group=www-data
-   WorkingDirectory=/var/www/mapa-evidencia-cannabis
-   Environment="PATH=/var/www/mapa-evidencia-cannabis/venv/bin"
-   Environment="MAPA_DB_PATH=/var/www/mapa-evidencia-cannabis/data_prod/mapa_cannabis.db"
-   ExecStart=/var/www/mapa-evidencia-cannabis/venv/bin/gunicorn --workers 3 --bind 127.0.0.1:5000 app:app
-
-   [Install]
-   WantedBy=multi-user.target
-   ```
-3. Configura Nginx como proxy inverso hacia `http://127.0.0.1:5000`.
+```
+mapa-evidencia-cannabis/
+│
+├── app.py                      # Enrutador principal Flask, endpoints API REST y controladores de vistas
+├── database.py                 # Conexión SQLite, esquema DDL relacional, catálogos y carga inicial
+├── requirements.txt            # Dependencias del ecosistema Python (Flask, Gunicorn)
+├── Procfile                    # Instrucción de arranque para servidores PaaS / Heroku / Render
+├── render.yaml                 # Manifiesto de infraestructura como código (IaC) para Render con disco persistente
+├── Plantilla README.md         # Plantilla estándar institucional para documentación de proyectos IETS
+├── GUIA_DISENO.md              # Especificaciones y pautas del sistema de diseño corporativo IETS
+├── README.md                   # Documentación técnica completa y exhaustiva del aplicativo
+│
+├── data/                       # Definiciones semilla y taxonomía canónica
+│   ├── taxonomia.py            # Catálogo formal de intervenciones (C1-C4) y desenlaces (D1-D4)
+│   └── estudios_semilla.py     # Base de datos inicial con 55 estudios biomédicos y normativa colombiana
+│
+├── templates/                  # Vistas HTML con motor de plantillas Jinja2
+│   ├── index.html              # Vista pública: Mapa interactivo, Documentación y Cómo leerlo
+│   └── admin.html              # Panel administrativo: Formularios CRUD, filtros y carga masiva JSON
+│
+└── static/                     # Archivos estáticos consumidos por el cliente
+    ├── css/
+    │   └── app.css             # Sistema de diseño institucional IETS (variables, grid, tipografía, modales)
+    └── js/
+        ├── mapa.js             # Lógica cliente del mapa: renderizado de matriz, filtros en tiempo real y CSV
+        └── admin.js            # Lógica cliente del panel: tablas dinámicas, modales y llamadas a la API REST
+```
 
 ---
 
-## 8. Navegación, Accesibilidad y Teclado
+## 📂 Estructura de almacenamiento
 
-La interfaz está optimizada para cumplimiento de pautas de accesibilidad y navegación rápida por teclado:
+El modelo de almacenamiento del sistema está optimizado para garantizar máxima velocidad de consulta y cero sobrecarga de mantenimiento:
 
-| Tecla / Atajo | Acción |
-|:---:|:---|
-| `/` | Enfoca automáticamente la barra de búsqueda de estudios. |
-| `Flechas` (`↑`, `↓`, `←`, `→`) | Desplazamiento accesible entre celdas contiguas de la matriz interactiva. |
-| `Enter` / `Espacio` | Abre la ficha técnica modal de estudios de la celda seleccionada. |
-| `Esc` | Cierra cualquier modal o diálogo emergente activo. |
-| `Tab` | Navega en orden lógico a través de filtros, vistas y botones. |
+```
+[Dispositivo Local / Servidor VPS / Contenedor PaaS]
+│
+├── /mapa-evidencia-cannabis/
+│   ├── mapa_cannabis.db                # Base de datos relacional activa (entorno local)
+│   └── data/
+│       ├── taxonomia.py                # Estructura taxonómica base
+│       └── estudios_semilla.py         # 55 estudios fundacionales precargados
+│
+└── /var/data/ (PaaS / Render Persistent Disk)
+    ├── mapa_cannabis.db                # Base de datos activa y persistente
+    └── backups/                        # Directorio para respaldos rotativos diarios (.db)
+```
 
----
-
-## 9. Protocolo de Verificación de Datos Semilla
-
-La base de datos incluye 55 estudios seminales de alto impacto. Todos los registros semilla inician con el estado **«Por verificar»**. 
-
-Flujo recomendado antes del lanzamiento oficial:
-1. Accede a `/admin` y activa el filtro de estado **«Por verificar»**.
-2. Contrasta los datos bibliográficos (autores, año, revista, DOI, resumen y certeza GRADE) contra la publicación original en PubMed o Crossref.
-3. Si la referencia está completa y validada, modifica su estado a **«Verificada»**.
-4. El mapa público exhibe una insignia distintiva de verificación en el panel de detalle de cada estudio.
+1. **Base de Datos Operativa (`mapa_cannabis.db`):** Contiene todas las tablas relacionales y registros actualizados en tiempo real.
+2. **Capa Semilla (`data/`):** Garantiza que si la base de datos se crea por primera vez en un entorno nuevo, se autoinicialice sin intervención manual con el compendio completo de estudios y taxonomías institucionales.
+3. **Persistencia Externa:** Los volúmenes montados protegen los datos contra reinicios o despliegues continuos del contenedor web.
 
 ---
 
-## 10. Seguridad y Consideraciones Técnicas
+## 👥 Roles y funcionalidades
 
-1. **Protección del Panel `/admin`**:
-   - En esta versión de desarrollo, `/admin` no cuenta con capa de autenticación integrada.
-   - Para despliegues públicos en producción, se debe proteger la ruta `/admin` mediante:
-     - Autenticación básica HTTP en Nginx / Apache.
-     - Middleware de autenticación de Flask (ej. Flask-Login o sesión JWT).
-     - Restricción de acceso por VPN o lista blanca de direcciones IP corporativas.
-2. **Inyección SQL**:
-   - Todas las consultas a la base de datos se parametrizan utilizando placeholders seguros de SQLite (`?`), previniendo cualquier riesgo de inyección SQL.
-3. **Optimización de Metadatos Sociales**:
-   - Antes de divulgar el enlace en redes o canales de mensajería (WhatsApp, LinkedIn), completa las etiquetas `og:url` y `og:image` en el encabezado `<head>` de `templates/index.html`.
+### 👤 Funcionario
+Orientado a profesionales clínicos, epidemiólogos, investigadores biomédicos, evaluadores de tecnologías sanitarias, decisores de políticas públicas (Ministerio de Salud, Invima) y ciudadanía interesada.
+
+- **Exploración de la Matriz Científica:** Visualización de la distribución del conocimiento entre 13 intervenciones y 15 desenlaces.
+- **Conmutación de Modos de Vista:** Alternancia instantánea entre volumen de estudios (burbujas bicolores), densidad de evidencia (mapa de calor) y certeza GRADE.
+- **Detección de Brechas de Investigación:** Identificación inmediata de vacíos de evidencia mediante el botón *«Resaltar vacíos»*.
+- **Filtrado Multidimensional:** Filtrado dinámico por diseño de estudio, grado de certidumbre, dirección del efecto, población y ámbito geográfico.
+- **Consulta de Fichas Técnicas de Estudios:** Apertura modal con metadatos completos, tamaño de muestra ($n$), resumen clínico y enlaces directos a las fuentes originales (PubMed/DOI).
+- **Exportación de Microdatos:** Descarga de los datos filtrados en formato CSV normalizado para análisis econométricos y estadísticos independientes.
+- **Consulta de Documentación y Marco Normativo:** Acceso completo a los 9 capítulos de documentación técnica y al resumen histórico de la normativa colombiana.
 
 ---
 
-## 11. Créditos y Licencia
+### 🛡️ Administrador
+Orientado a los profesionales metodológicos de la Dirección de Tecnologías en Salud y a los ingenieros de la Coordinación de TIC del IETS.
 
-- **Institución**: [Instituto de Evaluación Tecnológica en Salud — IETS](https://www.iets.org.co/)
-- **Ubicación**: Bogotá D.C., Colombia
-- **Marco Metodológico**: Directrices para *Evidence and Gap Maps* (3ie / Campbell Collaboration / PRISMA / GRADE Working Group).
-- **Licencia**: Uso institucional y científico bajo los lineamientos de acceso a información en salud del IETS.
+- **Gestión Integral de Estudios (CRUD):** Creación manual de nuevas publicaciones indexadas, edición de metadatos clínicos y eliminación de registros obsoletos o erróneos.
+- **Proceso de Auditoría y Verificación:** Control de calidad de los datos semilla, permitiendo modificar el estado de cada estudio de *«Por verificar»* a *«Verificada»* tras contrastarlo con la fuente primaria.
+- **Importación Masiva por Lotes (Batch Import):** Inserción estructurada de múltiples estudios clínicos simultáneamente a través del endpoint `/api/importar` utilizando códigos taxonómicos (`I1`-`I13`, `O1`-`O15`).
+- **Mantenimiento Taxonómico:** Creación, actualización o reordenamiento de categorías de intervención, intervenciones específicas, dominios de desenlace y desenlaces clínicos según evolucione el consenso científico internacional.
+- **Monitoreo de Salud del Sistema:** Supervisión de métricas de carga y disponibilidad a través del endpoint `/api/salud`.
+
+---
+
+## 📧 Plantilla de notificación
+> *(Plantilla de comunicación institucional para actualizaciones y reportes de evidencia)*
+
+A continuación se presenta el modelo estandarizado para comunicaciones institucionales vía correo electrónico a investigadores, sociedades científicas y entidades gubernamentales cuando se publiquen nuevas actualizaciones en el mapa:
+
+```markdown
+Asunto: [IETS] Actualización del Mapa de Evidencia en Cannabis Medicinal — Versión {VERSION}
+
+Estimado(a) colega / Evaluador(a) del Sistema de Salud:
+
+Le informamos que el Instituto de Evaluación Tecnológica en Salud (IETS) ha publicado una nueva actualización en el Mapa de Evidencia en Cannabis Medicinal, herramienta interactiva fundamentada en la metodología Evidence and Gap Maps (EGM):
+
+📌 Resumen de la actualización:
+--------------------------------------------------------------------------------
+- Nuevos estudios clínicos y síntesis incorporados: {NUMERO_ESTUDIOS}
+- Intervenciones actualizadas: {LISTA_INTERVENCIONES}
+- Nuevas brechas de investigación identificadas: {NUMERO_BRECHAS}
+- Estado de verificación metodológica: Verificado por el equipo técnico del IETS
+--------------------------------------------------------------------------------
+
+Lo invitamos a explorar la matriz interactiva, aplicar filtros por certeza GRADE o dirección del efecto, y exportar los microdatos actualizados para sus análisis técnicos y decisiones sanitarias:
+
+🔗 Acceso al mapa interactivo: https://mapa-evidencia-cannabis.onrender.com
+📄 Documentación y metodología: https://mapa-evidencia-cannabis.onrender.com#documentacion
+
+Para reportar nuevas publicaciones o solicitar soporte técnico, comuníquese con la Coordinación de TIC del IETS al correo: coordinaciontic@iets.org.co.
+
+Cordialmente,
+
+Equipo de Evaluación de Tecnologías y Síntesis de Evidencia
+Coordinación de Tecnologías de la Información y las Comunicaciones (TIC)
+Instituto de Evaluación Tecnológica en Salud — IETS
+República de Colombia
+```
+
+---
+
+<div align="center">
+  <p><strong>Instituto de Evaluación Tecnológica en Salud — IETS</strong></p>
+  <p>Bogotá D.C., Colombia · Plataforma de Acceso Abierto a la Evidencia Científica</p>
+</div>
