@@ -208,11 +208,16 @@ def _sembrar(conn: sqlite3.Connection) -> None:
             (codigo, dom_ids[dom_cod], nombre, desc, orden),
         )
 
-    # Cargar estudios desde el JSON
+    # Cargar estudios desde el JSON y crear vínculos con la taxonomía
+    from data.mapeo_taxonomia import mapear_estudio
+
     estudios = cargar_estudios()
+    int_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM intervenciones")}
+    des_ids = {r["codigo"]: r["id"] for r in conn.execute("SELECT id, codigo FROM desenlaces")}
+
     for e in estudios:
         try:
-            conn.execute(
+            cur = conn.execute(
                 """INSERT INTO estudios (codigo, id_excel, titulo, autores, anio, fuente,
                                          volumen, numero, doi, tipo_estudio, poblacion,
                                          ambito, pais, certeza, hallazgo, n_participantes,
@@ -234,6 +239,22 @@ def _sembrar(conn: sqlite3.Connection) -> None:
                     e.get("abstract", ""),
                 ),
             )
+            eid = cur.lastrowid
+
+            # Mapear automáticamente a la taxonomía usando los campos de texto
+            codigos_int, codigos_des = mapear_estudio(e)
+            for cod in codigos_int:
+                if cod in int_ids:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO estudio_intervencion VALUES (?,?)",
+                        (eid, int_ids[cod]),
+                    )
+            for cod in codigos_des:
+                if cod in des_ids:
+                    conn.execute(
+                        "INSERT OR IGNORE INTO estudio_desenlace VALUES (?,?)",
+                        (eid, des_ids[cod]),
+                    )
         except sqlite3.IntegrityError:
             pass  # Skip duplicates
 
