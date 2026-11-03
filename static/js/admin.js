@@ -37,6 +37,11 @@ async function api(url, opciones = {}) {
     headers: { "Content-Type": "application/json" },
     ...opciones,
   });
+  if (resp.status === 401) {
+    avisar("Sesión expirada o no autorizada. Redirigiendo al inicio de sesión...", "alerta");
+    setTimeout(() => { window.location.href = "/login?siguiente=" + encodeURIComponent(window.location.pathname); }, 1200);
+    throw new Error("No autorizado. Se requiere perfil de administrador.");
+  }
   const cuerpo = await resp.json().catch(() => ({ ok: false, error: "Respuesta ilegible del servidor." }));
   if (!resp.ok || !cuerpo.ok) throw new Error(cuerpo.error || "No fue posible completar la operación.");
   return cuerpo;
@@ -228,10 +233,6 @@ function opciones(select, valores, seleccionado) {
 function llenarSelectores() {
   const c = estado.catalogos;
   opciones($("#f-tipo"), c.tipos_estudio);
-  opciones($("#f-certeza"), c.certezas);
-  opciones($("#f-hallazgo"), c.hallazgos);
-  opciones($("#f-poblacion"), c.poblaciones);
-  opciones($("#f-ambito"), c.ambitos);
   opciones($("#f-estado"), c.estados);
 
   const filtro = $("#filtro-tipo");
@@ -293,7 +294,6 @@ function abrirFormularioEstudio(estudio = null, esCopia = false) {
   $("#f-fuente").value = v.fuente || "";
   $("#f-volumen").value = v.volumen || "";
   $("#f-numero").value = v.numero || "";
-  $("#f-pais").value = v.pais || "";
   $("#f-n").value = v.n_participantes || "";
   $("#f-doi").value = v.doi || "";
   $("#f-url").value = v.url || "";
@@ -305,10 +305,6 @@ function abrirFormularioEstudio(estudio = null, esCopia = false) {
   $("#f-intervencion-texto").value = v.intervencion_texto || "";
   $("#f-desenlaces-texto").value = v.desenlaces_texto || "";
   opciones($("#f-tipo"), estado.catalogos.tipos_estudio, v.tipo_estudio || "Revisión sistemática");
-  opciones($("#f-certeza"), estado.catalogos.certezas, v.certeza || "No evaluada");
-  opciones($("#f-hallazgo"), estado.catalogos.hallazgos, v.hallazgo || "No concluyente");
-  opciones($("#f-poblacion"), estado.catalogos.poblaciones, v.poblacion || "Mixta");
-  opciones($("#f-ambito"), estado.catalogos.ambitos, v.ambito || "Global");
   opciones($("#f-estado"), estado.catalogos.estados, v.estado || "Por verificar");
   mostrarEje();
 
@@ -477,6 +473,11 @@ $("#btn-importar-excel").addEventListener("click", async () => {
       method: "POST",
       body: formData,
     });
+    if (resp.status === 401) {
+      salida.innerHTML = '<span style="color:var(--alerta);font-weight:700">Sesión expirada o no autorizada. Redirigiendo al inicio de sesión...</span>';
+      setTimeout(() => { window.location.href = "/login?siguiente=" + encodeURIComponent(window.location.pathname); }, 1200);
+      return;
+    }
     const r = await resp.json();
     if (!r.ok) throw new Error(r.error || "Error desconocido");
 

@@ -35,6 +35,7 @@
       <a href="/#documentacion">Documentación</a>
       <a href="/#acerca">Cómo leerlo</a>
       <a href="/admin" aria-current="page" class="activo">Administración</a>
+      <a href="/logout" style="color:rgba(255,255,255,0.85);margin-left:0.5rem" title="Cerrar sesión de administrador">Cerrar sesión</a>
     </nav>
   </div>
 </header>
@@ -45,13 +46,14 @@
       <div>
         <h1>Administrar el mapa</h1>
         <p>
-          Todo lo que se guarde aquí se refleja de inmediato en el mapa público. Esta versión no
-          pide inicio de sesión: cualquiera con el enlace puede modificar los datos.
+          Panel exclusivo para el perfil de administración (<strong>{{ session.get('admin_usuario', 'admin') }}</strong>).
+          Los estudios, intervenciones y desenlaces gestionados o cargados aquí se reflejan de inmediato en el mapa interactivo.
         </p>
       </div>
       <div class="admin__acciones">
         <a class="boton boton--suave" href="/" target="_blank" rel="noopener">Ver el mapa</a>
         <button type="button" class="boton" id="btn-nuevo">Agregar registro</button>
+        <a class="boton boton--peligro-suave" href="/logout">Cerrar sesión</a>
       </div>
     </div>
 
@@ -170,10 +172,9 @@
         <div class="formulario">
           <h3 style="color:var(--azul-900);margin-bottom:.5rem">Carga masiva desde archivo Excel</h3>
           <p style="color:var(--tinta-media);font-size:.9rem;max-width:70ch">
-            Sube un archivo <code>.xlsx</code> con las mismas columnas de la Extraction Matrix:
-            <strong>ID, Autor, Año, Título, Revista, Volumen, Número, DOI, Tipo de estudio,
-            Población especial, Dominio general, Indicación, Intervención, Desenlaces, Abstract</strong>.
-            La primera fila debe contener los encabezados. Los registros sin título se omiten.
+            Sube un archivo <code>.xlsx</code> (como la matriz <code>Extraction_Matrix</code> o los archivos de la carpeta <code>insumos/</code>).
+            El sistema detecta dinámicamente las columnas por sus encabezados (título, autor, año, revista, tipo de estudio, intervención, desenlaces, etc.)
+            y vincula automáticamente los estudios a la taxonomía del mapa mediante mapeo clínico algorítmico.
           </p>
           <div class="campo campo--ancho" style="margin-top:1rem">
             <label for="archivo-excel">Archivo Excel (.xlsx)</label>
@@ -254,26 +255,6 @@
           <span class="ayuda" id="ayuda-eje"></span>
         </div>
         <div class="campo">
-          <label for="f-certeza">Certeza reportada</label>
-          <select id="f-certeza" name="certeza"></select>
-        </div>
-        <div class="campo">
-          <label for="f-hallazgo">Dirección del hallazgo</label>
-          <select id="f-hallazgo" name="hallazgo"></select>
-        </div>
-        <div class="campo">
-          <label for="f-poblacion">Población</label>
-          <select id="f-poblacion" name="poblacion"></select>
-        </div>
-        <div class="campo">
-          <label for="f-ambito">Ámbito</label>
-          <select id="f-ambito" name="ambito"></select>
-        </div>
-        <div class="campo">
-          <label for="f-pais">País</label>
-          <input id="f-pais" name="pais">
-        </div>
-        <div class="campo">
           <label for="f-n">Participantes</label>
           <input id="f-n" name="n_participantes" type="number" min="0">
         </div>
@@ -291,7 +272,8 @@
         </div>
         <div class="campo campo--ancho">
           <label for="f-poblacion-especial">Población especial</label>
-          <input id="f-poblacion-especial" name="poblacion_especial" placeholder="Ej: Población pediátrica, Adultos mayores">
+          <input id="f-poblacion-especial" name="poblacion_especial" placeholder="Ej: Población pediátrica, Adultos mayores (dejar vacío para Población general)">
+          <span class="ayuda">Si este campo se deja vacío, el estudio se clasifica automáticamente como <strong>«Población general»</strong>.</span>
         </div>
         <div class="campo campo--ancho">
           <label for="f-dominio-indicacion">Dominio general de la indicación</label>

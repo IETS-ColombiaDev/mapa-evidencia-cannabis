@@ -4,11 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mapa de Evidencia en Cannabis Medicinal — Instituto de Evaluación Tecnológica en Salud</title>
-<meta name="description" content="Mapa interactivo de evidencia científica disponible sobre cannabis medicinal: intervenciones, desenlaces, nivel de certeza GRADE y vacíos de investigación. Desarrollado por el Instituto de Evaluación Tecnológica en Salud.">
+<meta name="description" content="Mapa interactivo de evidencia científica disponible sobre cannabis medicinal: intervenciones, desenlaces clínicos y vacíos de investigación. Desarrollado por el Instituto de Evaluación Tecnológica en Salud.">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mapa de Evidencia en Cannabis Medicinal — Instituto de Evaluación Tecnológica en Salud">
-<meta property="og:description" content="Explora qué formulaciones y cannabinoides cuentan con evidencia clínica contrastada, para qué patologías y con qué nivel de certeza metodológica.">
+<meta property="og:description" content="Explora qué formulaciones y cannabinoides cuentan con evidencia clínica contrastada, para qué patologías y el volumen de literatura científica indexada.">
 <meta property="og:url" content="">
 <meta property="og:image" content="">
 <meta name="twitter:card" content="summary_large_image">
@@ -42,7 +42,12 @@
       <a href="#mapa" class="activo" data-tab="mapa">Mapa interactivo</a>
       <a href="#documentacion" data-tab="documentacion">Documentación</a>
       <a href="#acerca" data-tab="acerca">Cómo leerlo</a>
-      <a href="/admin">Administración</a>
+      {% if session.get('admin_autenticado') %}
+      <a href="/admin" class="nav-admin-link" title="Ir al panel de administración">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Admin ({{ session.get('admin_usuario', 'admin') }})
+      </a>
+      {% endif %}
     </nav>
   </div>
 </header>
@@ -85,7 +90,7 @@
     <div class="aviso" role="note">
       <svg width="18" height="18" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 1a7 7 0 100 14A7 7 0 008 1zm.8 10.6H7.2v-1.6h1.6v1.6zm0-2.8H7.2V4.4h1.6v4.4z"/></svg>
       <div>
-        <strong>Base de conocimiento activa.</strong> Los registros iniciales sintetizan la literatura científica de mayor impacto y rigor metodológico en el campo. Cada ficha técnica incluye nivel de certeza GRADE, resumen estructurado y enlace directo a la fuente primaria (PubMed / DOI).
+        <strong>Base de conocimiento activa.</strong> Los registros sintetizan la literatura científica de mayor impacto y rigor metodológico en el campo. Cada ficha técnica incluye tipo de diseño, resumen estructurado, indicación clínica y enlace directo a la fuente primaria (PubMed / DOI).
       </div>
     </div>
   </div>
@@ -106,23 +111,8 @@
         <div class="desplegable__panel"></div>
       </details>
 
-      <details class="desplegable" data-filtro="certeza">
-        <summary>Certeza GRADE <span class="cuenta" hidden>0</span></summary>
-        <div class="desplegable__panel"></div>
-      </details>
-
-      <details class="desplegable" data-filtro="hallazgo">
-        <summary>Dirección del hallazgo <span class="cuenta" hidden>0</span></summary>
-        <div class="desplegable__panel"></div>
-      </details>
-
       <details class="desplegable" data-filtro="poblacion">
         <summary>Población <span class="cuenta" hidden>0</span></summary>
-        <div class="desplegable__panel"></div>
-      </details>
-
-      <details class="desplegable" data-filtro="ambito">
-        <summary>Ámbito geográfico <span class="cuenta" hidden>0</span></summary>
         <div class="desplegable__panel"></div>
       </details>
 
@@ -134,10 +124,10 @@
       <div class="segmentado" role="group" aria-label="Modo de visualización de la matriz">
         <button type="button" data-vista="burbujas" aria-pressed="true">Burbujas</button>
         <button type="button" data-vista="calor" aria-pressed="false">Densidad</button>
-        <button type="button" data-vista="certeza" aria-pressed="false">Certeza máxima</button>
       </div>
 
       <button type="button" class="boton boton--suave" id="btn-vacios" aria-pressed="false">Resaltar vacíos</button>
+      <button type="button" class="boton boton--suave boton--aprobados" id="btn-aprobados" aria-pressed="false" title="Resaltar áreas donde existen medicamentos con registro sanitario INVIMA en Colombia">🇨🇴 Aprobados en Colombia</button>
       <button type="button" class="boton boton--suave" id="btn-exportar">Exportar CSV</button>
       <button type="button" class="boton boton--fantasma" id="btn-limpiar">Limpiar filtros</button>
     </div>
@@ -156,6 +146,10 @@
       <div class="leyenda__grupo">
         <span class="punto punto--primario" style="width:14px;height:14px"></span>
         <span><b>Estudios primarios:</b> Ensayos clínicos aleatorizados (ECA), observacionales y evaluaciones económicas.</span>
+      </div>
+      <div class="leyenda__grupo">
+        <span class="insignia-invima-leyenda" aria-hidden="true">🇨🇴</span>
+        <span><b>Aprobación INVIMA:</b> Cruces con medicamentos que cuentan con registro sanitario vigente en Colombia.</span>
       </div>
       <div class="leyenda__grupo escala">
         <span>Menor volumen</span>
@@ -184,7 +178,11 @@
       <div>
         <button type="button" class="enlace-pie" data-ir-tab="documentacion">Documentación técnica</button>
         <button type="button" class="enlace-pie" data-ir-tab="acerca">Cómo leerlo</button>
-        <a href="/admin">Panel de administración</a>
+        {% if session.get('admin_autenticado') %}
+        <a href="/admin" class="enlace-pie">Panel de administración</a>
+        {% else %}
+        <a href="/login" class="enlace-pie" title="Acceso restringido para administradores metodológicos">Acceso administrativo</a>
+        {% endif %}
       </div>
     </div>
   </footer>
@@ -200,7 +198,7 @@
       <div>
         <span class="doc-badge">Documento Técnico Oficial</span>
         <h1 class="doc-titulo">Documentación del Mapa de Evidencia</h1>
-        <p class="doc-subtitulo">Arquitectura taxonómica, marco metodológico GRADE, síntesis clínica de 55 estudios, vacíos identificados y marco regulatorio colombiano.</p>
+        <p class="doc-subtitulo">Arquitectura taxonómica, marco metodológico, síntesis clínica consolidada, vacíos identificados y marco regulatorio colombiano.</p>
       </div>
       <button type="button" class="boton btn-volver-mapa" data-ir-tab="mapa">
         ← Volver al mapa interactivo
@@ -219,11 +217,10 @@
           <a href="#doc-taxonomia">2. Taxonomía de Intervenciones</a>
           <a href="#doc-desenlaces">3. Dominios de Desenlace</a>
           <a href="#doc-tipologia">4. Tipología y Jerarquía</a>
-          <a href="#doc-grade">5. Certeza GRADE y Hallazgos</a>
-          <a href="#doc-evidencia">6. Evidencia Clínica Actual</a>
-          <a href="#doc-vacios">7. Vacíos de Investigación</a>
-          <a href="#doc-normativa">8. Marco Normativo en Colombia</a>
-          <a href="#doc-guia">9. Guía de Interacción</a>
+          <a href="#doc-evidencia">5. Evidencia Clínica Actual</a>
+          <a href="#doc-vacios">6. Vacíos de Investigación</a>
+          <a href="#doc-normativa">7. Marco Normativo en Colombia</a>
+          <a href="#doc-guia">8. Guía de Interacción</a>
         </nav>
       </aside>
 
@@ -398,64 +395,15 @@
           </div>
         </article>
 
-        <!-- 5. Sistema GRADE y Hallazgos -->
-        <article class="doc-seccion" id="doc-grade">
-          <h3>5. Sistema de Certeza GRADE y Dirección de los Hallazgos</h3>
-          <p>
-            La certeza de la evidencia asignada a cada estudio refleja la confianza metodológica en que la estimación del efecto observada sea fiel a la realidad, evaluando riesgo de sesgo, inconsistencia, imprecisión, carácter indirecto y sesgo de publicación:
-          </p>
-          <table class="tabla-doc">
-            <thead>
-              <tr>
-                <th style="width:20%">Nivel GRADE</th>
-                <th style="width:40%">Definición Operativa</th>
-                <th style="width:40%">Implicación Clínica y de Política</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td><span class="etiqueta etiqueta--sintesis" style="background:#3730A3;color:#fff;">Alta</span></td>
-                <td>Existe una confianza muy alta en que el verdadero efecto se encuentre muy cercano al efecto estimado en los estudios.</td>
-                <td>Es sumamente improbable que nuevas investigaciones cambien la confianza en el efecto terapéutico. Base sólida para recomendaciones fuertes.</td>
-              </tr>
-              <tr>
-                <td><span class="etiqueta etiqueta--sintesis" style="background:#6366F1;color:#fff;">Moderada</span></td>
-                <td>Existe confianza moderada en el efecto estimado; el verdadero efecto probablemente sea cercano, pero existe la posibilidad de que sea sustancialmente diferente.</td>
-                <td>Nuevas investigaciones podrían tener un impacto importante en la estimación del efecto. Recomendación condicional viable.</td>
-              </tr>
-              <tr>
-                <td><span class="etiqueta" style="background:#DBEAFE;color:#1E40AF;">Baja</span></td>
-                <td>La confianza en la estimación del efecto es limitada; el verdadero efecto podría ser sustancialmente distinto al efecto reportado.</td>
-                <td>Es muy probable que investigaciones adicionales modifiquen la dirección o magnitud del efecto. Se sugiere uso experimental o compasivo.</td>
-              </tr>
-              <tr>
-                <td><span class="etiqueta" style="background:#FEE2E2;color:#991B1B;">Muy baja</span></td>
-                <td>Cualquier estimación del efecto es altamente incierta y presenta sesgos sustanciales o muestras insuficientes.</td>
-                <td>No es posible extraer conclusiones terapéuticas válidas.</td>
-              </tr>
-            </tbody>
-          </table>
-          <div class="doc-card">
-            <h4>Dirección del Hallazgo Reportado</h4>
-            <ul>
-              <li><strong>Favorable:</strong> Demostración de superioridad estadísticamente significativa y clínicamente relevante del cannabinoide frente al placebo o comparador activo en el desenlace analizado.</li>
-              <li><strong>Mixto / Incierto:</strong> Beneficio demostrado únicamente en subgrupos específicos, disparidad entre desenlaces primarios y secundarios, o mejoría clínica acompañada de un incremento relevante de abandonos por toxicidad.</li>
-              <li><strong>Sin diferencia:</strong> Ausencia de diferencia estadísticamente significativa con respecto al placebo o tratamiento estándar.</li>
-              <li><strong>Desfavorable:</strong> Resultados que muestran incremento de eventos adversos, deterioro del síntoma o balance riesgo-beneficio negativo.</li>
-              <li><strong>No concluyente:</strong> Datos descriptivos sin poder estadístico para emitir un juicio definitivo.</li>
-            </ul>
-          </div>
-        </article>
-
-        <!-- 6. Evidencia Clínica Actual -->
+        <!-- 5. Evidencia Clínica Actual -->
         <article class="doc-seccion" id="doc-evidencia">
-          <h3>6. Resumen de Evidencia Clínica Consolidada (55 Estudios)</h3>
+          <h3>5. Resumen de Evidencia Clínica Consolidada</h3>
           <p>
             A continuación se detallan los hallazgos con base en la literatura pionera y las revisiones sistemáticas integradas en la base de datos del mapa:
           </p>
 
           <div class="doc-card">
-            <h4>A. Epilepsias Farmacorresistentes (Certeza Alta a Moderada)</h4>
+            <h4>A. Epilepsias Farmacorresistentes</h4>
             <p>
               El área con la evidencia más sólida corresponde al <strong>Cannabidiol purificado (I1, Epidiolex)</strong> como terapia añadida en pacientes pediátricos y adultos jóvenes con <em>Síndrome de Dravet</em>, <em>Síndrome de Lennox-Gastaut</em> y <em>Complejo de Esclerosis Tuberosa</em>.
             </p>
@@ -467,7 +415,7 @@
           </div>
 
           <div class="doc-card">
-            <h4>B. Dolor Crónico Neuropático (Certeza Moderada)</h4>
+            <h4>B. Dolor Crónico Neuropático</h4>
             <p>
               Los extractos balanceados THC:CBD (<strong>Nabiximoles I2</strong> y <strong>extractos balanceados I7</strong>), así como formulaciones orales sintéticas, han demostrado una reducción moderada del dolor neuropático de diversas etiologías (neuropatía periférica diabética, neuralgia postherpética, lesión de médula espinal).
             </p>
@@ -478,7 +426,7 @@
           </div>
 
           <div class="doc-card">
-            <h4>C. Espasticidad en Esclerosis Múltiple (Certeza Moderada)</h4>
+            <h4>C. Espasticidad en Esclerosis Múltiple</h4>
             <p>
               El uso de <strong>Nabiximoles (spray oromucoso 1:1)</strong> cuenta con respaldo consistente para pacientes con esclerosis múltiple que no logran control adecuado con antiespásticos orales de primera línea (baclofeno, tizanidina).
             </p>
@@ -489,16 +437,16 @@
           </div>
 
           <div class="doc-card">
-            <h4>D. Náuseas y Vómitos por Quimioterapia (Certeza Moderada a Baja)</h4>
+            <h4>D. Náuseas y Vómitos por Quimioterapia</h4>
             <p>
               Los análogos sintéticos del THC, <strong>Dronabinol (I3)</strong> y <strong>Nabilona (I4)</strong>, demostraron superioridad frente a placebo en ensayos clínicos tempranos (Phillips et al., <em>Cochrane Database Syst Rev 2016</em>). Sin embargo, su posicionamiento clínico actual es de <em>segunda línea</em> frente a los antagonistas de receptores 5-HT3 (ondansetrón) y NK1 (aprepitant), reservándose para emesis refractaria debida a efectos psicotrópicos indeseados.
             </p>
           </div>
 
           <div class="doc-card">
-            <h4>E. Trastornos Neuropsiquiátricos y Salud Mental (Certeza Baja a Muy Baja)</h4>
+            <h4>E. Trastornos Neuropsiquiátricos y Salud Mental</h4>
             <p>
-              Para condiciones como trastorno de ansiedad generalizada, trastorno por estrés postraumático (TEPT), depresión mayor e insomnio, la evidencia científica es heterogénea y de certeza metodológica baja o no concluyente.
+              Para condiciones como trastorno de ansiedad generalizada, trastorno por estrés postraumático (TEPT), depresión mayor e insomnio, la literatura científica disponible es heterogénea y no concluyente.
             </p>
             <ul>
               <li><strong>Revisión sistemática de referencia:</strong> Black et al. (<em>Lancet Psychiatry 2019</em>, 83 estudios con n=3051 participantes) concluyó que existe escasa evidencia rigurosa para recomendar cannabinoides medicinales en el tratamiento de trastornos mentales, alertando sobre el riesgo de psicosis y dependencia en poblaciones vulnerables.</li>
@@ -506,9 +454,9 @@
           </div>
         </article>
 
-        <!-- 7. Vacíos de Investigación -->
+        <!-- 6. Vacíos de Investigación -->
         <article class="doc-seccion" id="doc-vacios">
-          <h3>7. Análisis de Vacíos Críticos de Investigación (Research Gaps)</h3>
+          <h3>6. Análisis de Vacíos Críticos de Investigación (Research Gaps)</h3>
           <p>
             Las celdas rayadas de la matriz señalan cruces donde no existen ensayos clínicos o síntesis robustas publicadas. Los vacíos más prioritarios identificados en el mapa son:
           </p>
@@ -532,9 +480,9 @@
           </div>
         </article>
 
-        <!-- 8. Marco Normativo en Colombia -->
+        <!-- 7. Marco Normativo en Colombia -->
         <article class="doc-seccion" id="doc-normativa">
-          <h3>8. Marco Normativo y Regulatorio en Colombia</h3>
+          <h3>7. Marco Normativo y Regulatorio en Colombia</h3>
           <p>
             Colombia cuenta con uno de los esquemas regulatorios más estructurados y completos para el uso médico e industrial del cannabis y sus derivados:
           </p>
@@ -578,9 +526,9 @@
           </table>
         </article>
 
-        <!-- 9. Guía de Interacción con el Mapa -->
+        <!-- 8. Guía de Interacción con el Mapa -->
         <article class="doc-seccion" id="doc-guia">
-          <h3>9. Guía Práctica de Uso de la Herramienta Interactiva</h3>
+          <h3>8. Guía Práctica de Uso de la Herramienta Interactiva</h3>
           <div class="doc-grid-2">
             <div class="doc-card">
               <h4>Exploración de la Matriz</h4>
@@ -588,13 +536,12 @@
                 <li><strong>Navegación celda a celda:</strong> Haz clic en cualquier intersección para abrir la ficha técnica modal con la lista de estudios clasificados, resumen estructurado, autoría, año, número de pacientes y enlace DOI.</li>
                 <li><strong>Modo Burbujas:</strong> Muestra la coexistencia de revisiones sistemáticas (círculo índigo) y estudios primarios (círculo azul/celeste) con tamaño proporcional a la cantidad de publicaciones.</li>
                 <li><strong>Modo Densidad (Calor):</strong> Colorea cada celda según el volumen acumulado de literatura científica.</li>
-                <li><strong>Modo Certeza Máxima:</strong> Refleja el nivel metodológico más alto alcanzado en cada cruce según la escala GRADE.</li>
               </ul>
             </div>
             <div class="doc-card">
               <h4>Filtros Avanzados y Exportación</h4>
               <ul>
-                <li><strong>Filtrado multidimensional:</strong> Filtra simultáneamente por diseño del estudio, certeza GRADE, dirección del hallazgo, tipo de población y rango temporal.</li>
+                <li><strong>Filtrado multidimensional:</strong> Filtra simultáneamente por diseño metodológico del estudio (revisiones sistemáticas, ensayos clínicos, estudios observacionales) y rango temporal.</li>
                 <li><strong>Resaltar vacíos:</strong> El botón «Resaltar vacíos» ilumina en color rosa/rojo suave todas las celdas sin estudios para una rápida inspección de brechas.</li>
                 <li><strong>Exportación de microdatos:</strong> El botón «Exportar CSV» descarga un archivo con todas las variables normalizadas para su análisis en R, Python, Stata o Excel.</li>
               </ul>
@@ -611,7 +558,11 @@
       <div>
         <button type="button" class="enlace-pie" data-ir-tab="mapa">Volver al mapa</button>
         <button type="button" class="enlace-pie" data-ir-tab="acerca">Cómo leerlo</button>
-        <a href="/admin">Panel de administración</a>
+        {% if session.get('admin_autenticado') %}
+        <a href="/admin" class="enlace-pie">Panel de administración</a>
+        {% else %}
+        <a href="/login" class="enlace-pie" title="Acceso restringido para administradores metodológicos">Acceso administrativo</a>
+        {% endif %}
       </div>
     </div>
   </footer>
@@ -651,7 +602,7 @@
         <div class="bloque">
           <h3>Consideraciones de interpretación</h3>
           <p>
-            El tamaño de una burbuja refleja el <strong>volumen de publicaciones</strong> acumulado, no necesariamente la magnitud del beneficio terapéutico. Un cruce con diez estudios de certeza baja puede aportar menor solidez que un único ensayo clínico de certeza alta con bajo riesgo de sesgo.
+            El tamaño de una burbuja refleja el <strong>volumen de publicaciones</strong> acumulado, no necesariamente la magnitud del beneficio terapéutico o clínico. Un mayor número de estudios observacionales no sustituye un ensayo clínico aleatorizado riguroso o una revisión sistemática con metaanálisis.
           </p>
           <p>
             Este recurso representa una herramienta descriptiva de síntesis científica y no sustituye la evaluación médica individualizada ni constituye una guía vinculante de cobertura clínica.
@@ -672,7 +623,11 @@
       <div>
         <button type="button" class="enlace-pie" data-ir-tab="mapa">Volver al mapa</button>
         <button type="button" class="enlace-pie" data-ir-tab="documentacion">Documentación técnica</button>
-        <a href="/admin">Panel de administración</a>
+        {% if session.get('admin_autenticado') %}
+        <a href="/admin" class="enlace-pie">Panel de administración</a>
+        {% else %}
+        <a href="/login" class="enlace-pie" title="Acceso restringido para administradores metodológicos">Acceso administrativo</a>
+        {% endif %}
       </div>
     </div>
   </footer>
@@ -690,6 +645,7 @@
     </div>
     <button type="button" class="modal__cerrar" data-cerrar aria-label="Cerrar ventana de estudios">&times;</button>
   </div>
+  <div id="modal-invima-alerta" class="modal-invima-alerta" hidden></div>
   <div class="modal__cuerpo">
     <div class="lista-estudios">
       <div class="lista-estudios__barra"><span id="modal-conteo">0 estudios encontrados</span></div>

@@ -158,10 +158,149 @@ CREATE TABLE IF NOT EXISTS normativa (
     orden       INTEGER DEFAULT 0
 );
 
+CREATE TABLE IF NOT EXISTS usuarios (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    username      TEXT UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    nombre        TEXT DEFAULT 'Administrador',
+    rol           TEXT DEFAULT 'admin',
+    creado_en     TEXT DEFAULT (datetime('now'))
+);
+
+CREATE TABLE IF NOT EXISTS medicamentos_aprobados (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    orden               INTEGER DEFAULT 0,
+    expediente          TEXT DEFAULT '',
+    producto            TEXT NOT NULL,
+    registro_sanitario  TEXT NOT NULL,
+    fecha_expedicion    TEXT DEFAULT '',
+    estado_registro     TEXT DEFAULT 'Vigente',
+    principio_activo    TEXT NOT NULL,
+    forma_farmaceutica  TEXT DEFAULT '',
+    via_administracion  TEXT DEFAULT '',
+    concentracion       TEXT DEFAULT '',
+    atc                 TEXT DEFAULT '',
+    descripcion_atc     TEXT DEFAULT '',
+    relacion_cbd_thc    TEXT DEFAULT '',
+    indicaciones        TEXT DEFAULT '',
+    intervencion_codigo TEXT NOT NULL,
+    desenlace_codigo    TEXT NOT NULL,
+    creado_en           TEXT DEFAULT (datetime('now'))
+);
+
 CREATE INDEX IF NOT EXISTS idx_ei_estudio ON estudio_intervencion(estudio_id);
 CREATE INDEX IF NOT EXISTS idx_ed_estudio ON estudio_desenlace(estudio_id);
 CREATE INDEX IF NOT EXISTS idx_estudios_anio ON estudios(anio);
+CREATE INDEX IF NOT EXISTS idx_med_aprob_cruce ON medicamentos_aprobados(intervencion_codigo, desenlace_codigo);
 """
+
+
+def asegurar_admin(conn: sqlite3.Connection) -> None:
+    """Garantiza la existencia de al menos un usuario administrador."""
+    n = conn.execute("SELECT COUNT(*) AS n FROM usuarios").fetchone()["n"]
+    if n == 0:
+        admin_user = os.environ.get("ADMIN_USER", "admin")
+        admin_pass = os.environ.get("ADMIN_PASSWORD", "AdminIETS2025!")
+        from werkzeug.security import generate_password_hash
+        hash_clave = generate_password_hash(admin_pass)
+        conn.execute(
+            "INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, ?)",
+            (admin_user, hash_clave, "Administrador IETS", "admin"),
+        )
+
+
+def verificar_usuario(username: str, clave: str) -> dict | None:
+    """Verifica credenciales de un usuario y retorna sus datos o None si son inválidas."""
+    if not username or not clave:
+        return None
+    from werkzeug.security import check_password_hash
+    with get_conn() as conn:
+        fila = conn.execute(
+            "SELECT id, username, password_hash, nombre, rol FROM usuarios WHERE LOWER(username) = LOWER(?)",
+            (username.strip(),),
+        ).fetchone()
+        if fila and check_password_hash(fila["password_hash"], clave):
+            return {
+                "id": fila["id"],
+                "username": fila["username"],
+                "nombre": fila["nombre"],
+                "rol": fila["rol"],
+            }
+    return None
+
+
+def crear_usuario(username: str, clave: str, nombre: str = "Administrador", rol: str = "admin") -> bool:
+    """Crea o actualiza un usuario administrador."""
+    from werkzeug.security import generate_password_hash
+    hash_clave = generate_password_hash(clave)
+    with get_conn() as conn:
+        try:
+            conn.execute(
+                """INSERT INTO usuarios (username, password_hash, nombre, rol)
+                   VALUES (?, ?, ?, ?)
+                   ON CONFLICT(username) DO UPDATE SET password_hash = excluded.password_hash, nombre = excluded.nombre""",
+                (username.strip(), hash_clave, nombre.strip(), rol.strip()),
+            )
+            return True
+        except Exception:
+            return False
+
+
+def asegurar_medicamentos_aprobados(conn: sqlite3.Connection) -> None:
+    """Garantiza la existencia y poblamiento de la tabla medicamentos_aprobados (INVIMA)."""
+    conn.execute("""
+    CREATE TABLE IF NOT EXISTS medicamentos_aprobados (
+        id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+        orden               INTEGER DEFAULT 0,
+        expediente          TEXT DEFAULT '',
+        producto            TEXT NOT NULL,
+        registro_sanitario  TEXT NOT NULL,
+        fecha_expedicion    TEXT DEFAULT '',
+        estado_registro     TEXT DEFAULT 'Vigente',
+        principio_activo    TEXT NOT NULL,
+        forma_farmaceutica  TEXT DEFAULT '',
+        via_administracion  TEXT DEFAULT '',
+        concentracion       TEXT DEFAULT '',
+        atc                 TEXT DEFAULT '',
+        descripcion_atc     TEXT DEFAULT '',
+        relacion_cbd_thc    TEXT DEFAULT '',
+        indicaciones        TEXT DEFAULT '',
+        intervencion_codigo TEXT NOT NULL,
+        desenlace_codigo    TEXT NOT NULL,
+        creado_en           TEXT DEFAULT (datetime('now'))
+    );
+    """)
+    n = conn.execute("SELECT COUNT(*) AS n FROM medicamentos_aprobados").fetchone()["n"]
+    if n == 0:
+        from data.medicamentos_invima import cargar_medicamentos_invima
+        items = cargar_medicamentos_invima()
+        for item in items:
+            conn.execute(
+                """INSERT INTO medicamentos_aprobados (
+                    orden, expediente, producto, registro_sanitario, fecha_expedicion,
+                    estado_registro, principio_activo, forma_farmaceutica, via_administracion,
+                    concentracion, atc, descripcion_atc, relacion_cbd_thc, indicaciones,
+                    intervencion_codigo, desenlace_codigo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    item.get("orden", 0),
+                    item.get("expediente", ""),
+                    item.get("producto", ""),
+                    item.get("registro_sanitario", ""),
+                    item.get("fecha_expedicion", ""),
+                    item.get("estado_registro", "Vigente"),
+                    item.get("principio_activo", ""),
+                    item.get("forma_farmaceutica", ""),
+                    item.get("via_administracion", ""),
+                    item.get("concentracion", ""),
+                    item.get("atc", ""),
+                    item.get("descripcion_atc", ""),
+                    item.get("relacion_cbd_thc", ""),
+                    item.get("indicaciones", ""),
+                    item.get("intervencion_codigo", ""),
+                    item.get("desenlace_codigo", ""),
+                ),
+            )
 
 
 def init_db(force: bool = False) -> None:
@@ -171,6 +310,8 @@ def init_db(force: bool = False) -> None:
 
     with get_conn() as conn:
         conn.executescript(SCHEMA)
+        asegurar_admin(conn)
+        asegurar_medicamentos_aprobados(conn)
         ya_tiene_datos = conn.execute("SELECT COUNT(*) AS n FROM estudios").fetchone()["n"] > 0
         if ya_tiene_datos:
             return

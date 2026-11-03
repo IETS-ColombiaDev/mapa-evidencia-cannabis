@@ -261,6 +261,28 @@ a:hover { color: var(--azul-hover); }
   color: var(--azul);
   font-weight: 700;
 }
+.nav-admin-link {
+  background: rgba(56, 189, 248, 0.15) !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  color: #38BDF8 !important;
+  font-weight: 700 !important;
+  margin-left: 0.5rem;
+  gap: 0.4rem;
+}
+.nav-admin-link:hover {
+  background: rgba(56, 189, 248, 0.3) !important;
+  color: #FFFFFF !important;
+}
+.boton--peligro-suave {
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+}
+.boton--peligro-suave:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
 
 /* ── Cabecera e Introducción (Compacta para dar amplitud al mapa) ──────── */
 .intro {
@@ -944,6 +966,169 @@ a:hover { color: var(--azul-hover); }
 .vacio-visible .m-celda.vacia::after {
   background-image: linear-gradient(135deg, transparent 46%, #FCA5A5 46%, #FCA5A5 54%, transparent 54%);
   opacity: 0.75;
+}
+
+/* ── Resaltado de áreas con medicamentos aprobados en Colombia (INVIMA) ── */
+.boton--aprobados[aria-pressed="true"],
+.boton--aprobados.boton--activo {
+  background: #ECFDF5;
+  border-color: #059669;
+  color: #065F46;
+  box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.25);
+  font-weight: 700;
+}
+
+.m-celda.celda--aprobado {
+  position: relative;
+}
+.m-celda.celda--aprobado .insignia-invima {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  font-size: 0.72rem;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+  transition: transform var(--trans-fast);
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.15));
+}
+
+.aprobados-visible .m-celda:not(.celda--aprobado) {
+  opacity: 0.32;
+  filter: grayscale(20%);
+  transition: opacity var(--trans-fast);
+}
+
+.aprobados-visible .m-celda.celda--aprobado {
+  background: #F0FDF4 !important;
+  box-shadow: inset 0 0 0 2.5px #059669, 0 0 12px rgba(5, 150, 105, 0.35);
+  z-index: 10;
+}
+.aprobados-visible .m-celda.celda--aprobado .insignia-invima {
+  transform: scale(1.35);
+  filter: drop-shadow(0 2px 4px rgba(5, 150, 105, 0.4));
+}
+
+.insignia-invima-leyenda {
+  font-size: 1.15rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.2rem;
+}
+
+/* Tooltip con información INVIMA */
+.tooltip-invima {
+  margin-top: 0.55rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed #A7F3D0;
+  font-size: 0.75rem;
+}
+.tooltip-invima__titulo {
+  font-weight: 700;
+  color: #047857;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.tooltip-invima__texto {
+  margin-top: 2px;
+  color: var(--slate-700);
+  line-height: 1.35;
+}
+
+/* Modal: Banner de Medicamentos Aprobados INVIMA */
+.modal-invima-alerta {
+  background: #F0FDF4;
+  border-bottom: 1px solid #A7F3D0;
+}
+.alerta-invima {
+  padding: 0.85rem 1.4rem;
+}
+.alerta-invima__cabecera {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.65rem;
+}
+.alerta-invima__icono {
+  font-size: 1.4rem;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.alerta-invima__cabecera strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #065F46;
+}
+.alerta-invima__cabecera p {
+  margin: 0.15rem 0 0;
+  font-size: 0.8rem;
+  color: #047857;
+  line-height: 1.35;
+}
+.alerta-invima__lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 0.65rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.tarjeta-med-invima {
+  background: #FFFFFF;
+  border: 1px solid #D1FAE5;
+  border-radius: var(--radius-base);
+  padding: 0.6rem 0.75rem;
+  font-size: 0.78rem;
+  box-shadow: var(--shadow-sm);
+}
+.tarjeta-med-invima__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 3px;
+}
+.tarjeta-med-invima__nombre {
+  font-weight: 700;
+  color: #065F46;
+  font-size: 0.84rem;
+}
+.tarjeta-med-invima__registro {
+  font-size: 0.72rem;
+  color: var(--slate-500);
+  white-space: nowrap;
+}
+.tarjeta-med-invima__meta {
+  color: var(--slate-700);
+  font-size: 0.76rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tarjeta-med-invima__detalles {
+  margin-top: 5px;
+}
+.tarjeta-med-invima__detalles summary {
+  cursor: pointer;
+  color: #047857;
+  font-weight: 600;
+  font-size: 0.74rem;
+}
+.tarjeta-med-invima__detalles summary:hover {
+  text-decoration: underline;
+}
+.tarjeta-med-invima__detalles p {
+  margin: 4px 0 0;
+  padding: 5px 7px;
+  background: #F9FAFB;
+  border-radius: 4px;
+  font-size: 0.73rem;
+  line-height: 1.4;
+  color: var(--slate-600);
+  border: 1px solid var(--slate-200);
 }
 
 /* ── Tooltip ──────────────────────────────────────────────────────────── */

@@ -24,7 +24,7 @@ El sistema cruza matricialmente dos ejes analíticos fundamentales:
 - **Eje Vertical (Filas - 13 Intervenciones):** Agrupadas en 4 categorías taxonómicas que van desde cannabinoides con registro sanitario formal (CBD purificado, Nabiximoles, Dronabinol, Nabilona), pasando por extractos y fórmulas magistrales (predominio THC, predominio CBD, balanceados, espectro completo), flor y vías no convencionales (vaporizado, fumado, formulaciones tópicas), hasta gobernanza y prescripción médica.
 - **Eje Horizontal (Columnas - 15 Desenlaces):** Clasificados en 4 dominios clínicos y sistémicos: Eficacia terapéutica (dolor crónico, espasticidad, emesis, epilepsia refractaria, apetito, sueño, trastornos neuropsiquiátricos, movimientos anormales), Calidad de vida y funcionalidad, Seguridad y toxicología (eventos adversos, efectos cognitivos, dependencia), e Impacto en el sistema de salud (ahorro de otros fármacos, costo-efectividad y uso de servicios).
 
-Cada intersección de la matriz consolida el volumen de publicaciones clasificando visualmente entre **síntesis de evidencia** (revisiones sistemáticas, metaanálisis, GPC, ETS) y **estudios primarios** (ensayos clínicos aleatorizados, cohortes, estudios observacionales), evaluados bajo el marco metodológico **GRADE** (*Grading of Recommendations Assessment, Development and Evaluation*) y señalando de forma unívoca las **brechas de investigación** (*research gaps*) donde se requiere generar nueva evidencia empírica.
+Cada intersección de la matriz consolida el volumen de publicaciones clasificando visualmente entre **síntesis de evidencia** (revisiones sistemáticas, metaanálisis, GPC, ETS) y **estudios primarios** (ensayos clínicos aleatorizados, cohortes, estudios observacionales), estructurados por jerarquía metodológica y señalando de forma unívoca las **brechas de investigación** (*research gaps*) donde se requiere generar nueva evidencia empírica.
 
 ---
 
@@ -32,16 +32,17 @@ Cada intersección de la matriz consolida el volumen de publicaciones clasifican
 
 ### Entorno local de desarrollo y análisis
 - **Visualizador público (Mapa interactivo):** [http://localhost:5000](http://localhost:5000)
-- **Panel de administración de estudios y taxonomías:** [http://localhost:5000/admin](http://localhost:5000/admin)
-
+- **Acceso administrativo / Inicio de sesión:** [http://localhost:5000/login](http://localhost:5000/login)
+- **Panel de administración de estudios y taxonomías:** [http://localhost:5000/admin](http://localhost:5000/admin) *(Exclusivo perfil administrador)*
 ### Entorno de producción institucional
 - **Servicio en la nube (Render):** [https://mapa-evidencia-cannabis.onrender.com](https://mapa-evidencia-cannabis.onrender.com)
 - **Dominio institucional IETS (Configurable vía CNAME):** `https://evidenciacannabis.iets.org.co`
 
 ### Endpoints principales de la API REST
-- `GET /api/salud`: Verificación de disponibilidad y conteo total de estudios cargados.
-- `GET /api/datos`: Dataset íntegro normalizado (matriz, taxonomías, estudios, relaciones y normativa).
-- `GET /api/catalogos`: Listas maestras controladas (diseños, certeza GRADE, hallazgos, poblaciones, ámbitos).
+- GET /api/salud: Verificación de disponibilidad y conteo total de estudios cargados.
+- GET /api/datos: Dataset íntegro normalizado (matriz, taxonomías, estudios, relaciones, normativa y medicamentos aprobados INVIMA).
+- GET /api/aprobados-colombia: Catálogo oficial de medicamentos con registro sanitario INVIMA vigente en Colombia.
+- GET /api/catalogos: Listas maestras controladas (diseños, poblaciones, taxonomía de intervenciones y desenlaces).
 
 ---
 
@@ -75,10 +76,13 @@ El sistema adopta un modelo de gobernanza de información científica con dos ni
    - Acceso irrestricto y sin barreras para la comunidad científica, profesionales de la salud, entidades estatales y ciudadanía en general, en consonancia con la política de datos abiertos y transparencia del IETS.
    - Rutas públicas de consulta de solo lectura (`GET /`, `GET /api/datos`, `GET /api/catalogos`, `GET /api/salud`).
 
-2. **Panel de Gestión y Curaduría de Evidencia (`/admin`):**
-   - Espacio restringido para investigadores y administradores metodológicos del IETS, habilitando la creación, actualización, validación y eliminación de estudios clínicos, además del mantenimiento de la taxonomía.
-   - En despliegues locales de desarrollo no exige inicio de sesión; para despliegues en entornos de producción institucional, se implementan las siguientes capas de seguridad:
-     - **Autenticación HTTP Básica / Digest en Proxy Inverso:** Configuración obligatoria a nivel de Nginx o Ingress Controller con credenciales criptográficas seguras.
+2. **Panel de Gestión y Curaduría de Evidencia (/admin) — Exclusivo Administrador:**
+   - Espacio estrictamente restringido para el perfil de administración del IETS, requiriendo inicio de sesión autenticado (/login).
+   - Solo el administrador cuenta con permisos para agregar estudios, editar o eliminar registros, gestionar taxonomías y ejecutar la carga masiva desde Excel (/api/importar-excel) o JSON (/api/importar).
+   - Las operaciones de mutación vía API (POST, PUT, DELETE) están protegidas con control de sesión (@admin_requerido), retornando error HTTP 401 si se invocan sin credenciales autorizadas.
+   - Cuenta administradora predeterminada: usuario dmin, contraseña configurable vía variables de entorno (ADMIN_USER, ADMIN_PASSWORD) o almacenada con hash seguro (werkzeug.security) en SQLite.
+   - Compatibilidad de carga masiva tanto con la matriz de extracción como con los archivos de la carpeta insumos/, con detección inteligente de cabeceras y mapeo algorítmico automatizado a la taxonomía.
+   - Capas de seguridad adicionales:
      - **Filtrado de Red y VPN Corporativa:** Restricción de tráfico al endpoint `/admin` y a los métodos `POST`, `PUT` y `DELETE` mediante listas blancas de direcciones IP institucionales o redes privadas virtuales (VPN IETS).
      - **Protección contra Inyección SQL:** Todas las transacciones a la base de datos SQLite utilizan parámetros enlazados nativos (`?`), previniendo cualquier vulnerabilidad de inyección SQL.
      - **Mitigación de Cross-Site Scripting (XSS):** Todo el texto inyectado en el DOM es sanitizado mediante `textContent` en Vanilla JavaScript y escape seguro nativo del motor de plantillas Jinja2 de Flask.
@@ -89,15 +93,14 @@ El sistema adopta un modelo de gobernanza de información científica con dos ni
 ## ✨ Características principales
 
 - **Matriz Cruzada Bidimensional Interactiva:** Cruce dinámico de 13 intervenciones farmacológicas y regulatorias contra 15 desenlaces clínicos y de salud pública.
-- **Visualización Científica en Tres Modos Intercambiables:**
+- **Visualización Científica en Dos Modos Intercambiables:**
   - **Modo Burbujas:** Visualización proporcional del volumen de estudios por celda, diferenciando con círculos bicolores la **síntesis de evidencia** (color turquesa `#289E93`) y los **estudios primarios** (color amarillo `#EAA000`).
   - **Modo Densidad (Mapa de Calor):** Gradiente cromático continuo que refleja visualmente la concentración de literatura por intersección clínica.
-  - **Modo Certeza Máxima (GRADE):** Visualiza en cada casilla el nivel máximo de certidumbre metodológica reportado (Alta, Moderada, Baja, Muy baja).
 - **Detección Automática de Brechas (*Research Gaps*):**
   - Identificación gráfica inmediata de celdas con ausencia de evidencia mediante trama rayada (*hatch pattern*).
   - Botón interactivo *«Resaltar vacíos»* que ilumina al instante las brechas de conocimiento prioritarias para guiar agendas de investigación biomédica.
 - **Filtrado Multidimensional en Tiempo Real:**
-  - Filtrado cruzado simultáneo por diseño de estudio (ECA, revisiones sistemáticas, cohortes, etc.), nivel de certeza GRADE, dirección del hallazgo (favorable, mixto, sin diferencia, desfavorable), grupo poblacional (adultos, pediatría, adultos mayores), ámbito geográfico y período cronológico.
+  - Filtrado cruzado por diseño de estudio (revisiones sistemáticas, ensayos clínicos, estudios observacionales) y período cronológico.
 - **Sincronización de Estado en la URL (`URLSearchParams`):**
   - Cada selección de filtros, pestaña o modo de vista se codifica automáticamente en los parámetros de la URL, permitiendo compartir enlaces directos a análisis específicos o reproducir hallazgos en comités técnicos.
 - **Ficha Técnica Modal de Estudios:**
@@ -375,7 +378,7 @@ El modelo de almacenamiento del sistema está optimizado para garantizar máxima
 Orientado a profesionales clínicos, epidemiólogos, investigadores biomédicos, evaluadores de tecnologías sanitarias, decisores de políticas públicas (Ministerio de Salud, Invima) y ciudadanía interesada.
 
 - **Exploración de la Matriz Científica:** Visualización de la distribución del conocimiento entre 13 intervenciones y 15 desenlaces.
-- **Conmutación de Modos de Vista:** Alternancia instantánea entre volumen de estudios (burbujas bicolores), densidad de evidencia (mapa de calor) y certeza GRADE.
+- **Conmutación de Modos de Vista:** Alternancia instantánea entre volumen de estudios (burbujas bicolores) y densidad de evidencia (mapa de calor).
 - **Detección de Brechas de Investigación:** Identificación inmediata de vacíos de evidencia mediante el botón *«Resaltar vacíos»*.
 - **Filtrado Multidimensional:** Filtrado dinámico por diseño de estudio, grado de certidumbre, dirección del efecto, población y ámbito geográfico.
 - **Consulta de Fichas Técnicas de Estudios:** Apertura modal con metadatos completos, tamaño de muestra ($n$), resumen clínico y enlaces directos a las fuentes originales (PubMed/DOI).
@@ -415,7 +418,7 @@ Le informamos que el Instituto de Evaluación Tecnológica en Salud (IETS) ha pu
 - Estado de verificación metodológica: Verificado por el equipo técnico del IETS
 --------------------------------------------------------------------------------
 
-Lo invitamos a explorar la matriz interactiva, aplicar filtros por certeza GRADE o dirección del efecto, y exportar los microdatos actualizados para sus análisis técnicos y decisiones sanitarias:
+Lo invitamos a explorar la matriz interactiva, explorar los cruces clínicos por tipo de estudio y período, y exportar los microdatos actualizados para sus análisis técnicos y decisiones sanitarias:
 
 🔗 Acceso al mapa interactivo: https://mapa-evidencia-cannabis.onrender.com
 📄 Documentación y metodología: https://mapa-evidencia-cannabis.onrender.com#documentacion
