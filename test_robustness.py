@@ -19,8 +19,12 @@ class TestRobustez(unittest.TestCase):
         with get_conn() as conn:
             n_admin = conn.execute("SELECT COUNT(*) AS n FROM usuarios WHERE username='admin'").fetchone()["n"]
             self.assertEqual(n_admin, 1)
+            n_editor = conn.execute("SELECT COUNT(*) AS n FROM usuarios WHERE username='editor'").fetchone()["n"]
+            self.assertEqual(n_editor, 1)
             n_aprob = conn.execute("SELECT COUNT(*) AS n FROM medicamentos_aprobados").fetchone()["n"]
             self.assertEqual(n_aprob, 9)
+            n_est = conn.execute("SELECT COUNT(*) AS n FROM estudios").fetchone()["n"]
+            self.assertEqual(n_est, 392)
 
     def test_seguridad_rutas_protegidas_sin_autenticacion(self):
         # Todos los métodos de mutación deben rechazar peticiones no autorizadas

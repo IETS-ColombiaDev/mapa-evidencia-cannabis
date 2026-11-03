@@ -38,6 +38,17 @@ Cada intersección de la matriz consolida el volumen de publicaciones clasifican
 - **Servicio en la nube (Render):** [https://mapa-evidencia-cannabis.onrender.com](https://mapa-evidencia-cannabis.onrender.com)
 - **Dominio institucional IETS (Configurable vía CNAME):** `https://evidenciacannabis.iets.org.co`
 
+### Credenciales de acceso institucional (Entorno de evaluación)
+El sistema cuenta con control de acceso basado en roles (RBAC) con dos perfiles preconfigurados:
+- **Perfil Administrador:**
+  - **Usuario:** dmin
+  - **Contraseña:** AdminIETS2025!
+  - **Permisos:** Control total del aplicativo (gestión de estudios, estructura taxonómica de intervenciones/desenlaces, categorías y dominios, e importación masiva).
+- **Perfil Editor:**
+  - **Usuario:** editor
+  - **Contraseña:** EditorIETS2025!
+  - **Permisos:** Gestión científica de estudios (registro manual, edición de metadatos, verificación y carga masiva de archivos Excel/JSON).
+
 ### Endpoints principales de la API REST
 - GET /api/salud: Verificación de disponibilidad y conteo total de estudios cargados.
 - GET /api/datos: Dataset íntegro normalizado (matriz, taxonomías, estudios, relaciones, normativa y medicamentos aprobados INVIMA).

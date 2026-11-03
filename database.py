@@ -195,18 +195,37 @@ CREATE INDEX IF NOT EXISTS idx_med_aprob_cruce ON medicamentos_aprobados(interve
 """
 
 
-def asegurar_admin(conn: sqlite3.Connection) -> None:
-    """Garantiza la existencia de al menos un usuario administrador."""
-    n = conn.execute("SELECT COUNT(*) AS n FROM usuarios").fetchone()["n"]
-    if n == 0:
-        admin_user = os.environ.get("ADMIN_USER", "admin")
-        admin_pass = os.environ.get("ADMIN_PASSWORD", "AdminIETS2025!")
-        from werkzeug.security import generate_password_hash
-        hash_clave = generate_password_hash(admin_pass)
+def asegurar_usuarios_base(conn: sqlite3.Connection) -> None:
+    """Garantiza la existencia de los perfiles base (Administrador y Editor)."""
+    from werkzeug.security import generate_password_hash
+
+    # 1. Perfil Administrador (Control total)
+    admin_user = os.environ.get("ADMIN_USER", "admin")
+    admin_pass = os.environ.get("ADMIN_PASSWORD", "AdminIETS2025!")
+    admin_existe = conn.execute(
+        "SELECT id FROM usuarios WHERE LOWER(username) = LOWER(?)", (admin_user,)
+    ).fetchone()
+    if not admin_existe:
         conn.execute(
             "INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, ?)",
-            (admin_user, hash_clave, "Administrador IETS", "admin"),
+            (admin_user, generate_password_hash(admin_pass), "Administrador IETS", "admin"),
         )
+
+    # 2. Perfil Editor (Gestión de estudios y cargues)
+    editor_user = os.environ.get("EDITOR_USER", "editor")
+    editor_pass = os.environ.get("EDITOR_PASSWORD", "EditorIETS2025!")
+    editor_existe = conn.execute(
+        "SELECT id FROM usuarios WHERE LOWER(username) = LOWER(?)", (editor_user,)
+    ).fetchone()
+    if not editor_existe:
+        conn.execute(
+            "INSERT INTO usuarios (username, password_hash, nombre, rol) VALUES (?, ?, ?, ?)",
+            (editor_user, generate_password_hash(editor_pass), "Editor Científico IETS", "editor"),
+        )
+
+
+# Alias para retrocompatibilidad
+asegurar_admin = asegurar_usuarios_base
 
 
 def verificar_usuario(username: str, clave: str) -> dict | None:

@@ -95,6 +95,26 @@ class TestAdminSecurity(unittest.TestCase):
         self.assertNotIn('"certeza"', mapa_js[:100])
         self.assertNotIn('mejorCerteza', mapa_js)
 
+    def test_editor_login_and_access(self):
+        # Successful editor login
+        resp = self.client.post('/login', data={'usuario': 'editor', 'clave': 'EditorIETS2025!'}, follow_redirects=False)
+        self.assertEqual(resp.status_code, 302)
+
+        # Check authenticated status shows editor role
+        resp = self.client.get('/api/auth/estado')
+        data = resp.get_json()
+        self.assertTrue(data['autenticado'])
+        self.assertEqual(data['usuario'], 'editor')
+        self.assertEqual(data['rol'], 'editor')
+
+        # Admin panel is accessible
+        resp = self.client.get('/admin')
+        self.assertEqual(resp.status_code, 200)
+        self.assertIn('Editor', resp.get_data(as_text=True))
+
+        # Logout
+        self.client.get('/logout')
+
     def test_poblacion_general_rule(self):
         # Check /api/datos populates "Población general" when poblacion_especial is empty
         resp = self.client.get('/api/datos')

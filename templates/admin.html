@@ -46,8 +46,10 @@
       <div>
         <h1>Administrar el mapa</h1>
         <p>
-          Panel exclusivo para el perfil de administración (<strong>{{ session.get('admin_usuario', 'admin') }}</strong>).
-          Los estudios, intervenciones y desenlaces gestionados o cargados aquí se reflejan de inmediato en el mapa interactivo.
+          Sesión activa: <strong>{{ session.get('admin_nombre', 'Administrador IETS') }}</strong> (<code>{{ session.get('admin_usuario', 'admin') }}</code>) ·
+          Perfil: <span class="etiqueta {% if session.get('admin_rol') == 'admin' %}etiqueta--sintesis{% else %}etiqueta--primario{% endif %}" style="font-weight:700">
+            {% if session.get('admin_rol') == 'admin' %}Administrador (Control total){% else %}Editor (Gestión de estudios){% endif %}
+          </span>
         </p>
       </div>
       <div class="admin__acciones">

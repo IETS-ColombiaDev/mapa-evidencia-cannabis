@@ -15,11 +15,71 @@ import json
 import os
 
 _BASE = os.path.dirname(os.path.abspath(__file__))
+_ROOT = os.path.dirname(_BASE)
 _JSON_PATH = os.path.join(_BASE, "estudios_seed.json")
+_INSUMOS_DIR = os.path.join(_ROOT, "insumos")
+
+
+def _buscar_excel_insumos():
+    if not os.path.exists(_INSUMOS_DIR):
+        return None
+    for f in os.listdir(_INSUMOS_DIR):
+        if "extracc" in f.lower() and f.endswith(".xlsx"):
+            return os.path.join(_INSUMOS_DIR, f)
+    return None
 
 
 def cargar_estudios():
-    """Lee el JSON de estudios y les asigna un código E001, E002, …"""
+    """Lee los estudios priorizando insumos/Extracción final (1).xlsx y les asigna un código E001, E002, …"""
+    excel_path = _buscar_excel_insumos()
+    if excel_path:
+        try:
+            import openpyxl
+            wb = openpyxl.load_workbook(excel_path, data_only=True)
+            sheet = wb.active
+            rows = list(sheet.iter_rows(values_only=True))
+            if rows and len(rows) > 1:
+                headers = rows[0]
+                estudios = []
+                for i, r in enumerate(rows[1:], start=1):
+                    d = dict(zip(headers, r))
+                    tit = str(d.get("Título ") or d.get("Título") or "").strip()
+                    if not tit:
+                        continue
+                    y = d.get("Año")
+                    try:
+                        anio = int(float(y)) if y is not None and str(y).strip() != "" else None
+                    except (ValueError, TypeError):
+                        anio = None
+                    try:
+                        id_ex = int(float(d.get("ID del estudio"))) if d.get("ID del estudio") is not None else i
+                    except (ValueError, TypeError):
+                        id_ex = i
+
+                    estudios.append({
+                        "codigo": f"E{str(i).zfill(3)}",
+                        "id_excel": id_ex,
+                        "titulo": tit,
+                        "autores": str(d.get("Autor (apellido primer autor)") or "").strip(),
+                        "anio": anio,
+                        "fuente": str(d.get("Revista") or "").strip(),
+                        "volumen": str(d.get("Volumen") or "").strip(),
+                        "numero": str(d.get("Número") or "").strip(),
+                        "doi": "",
+                        "tipo_estudio": str(d.get("Tipo de estudio") or "").strip() or "Revisión sistemática",
+                        "poblacion_especial": str(d.get("¿El estudio tuvo en cuenta alguna población especial? (Si es así, seleccionar)") or "").strip(),
+                        "dominio_indicacion": str(d.get("Dominio general de la indicación clínica") or "").strip(),
+                        "indicacion": str(d.get("Indicación como los autores la describen") or "").strip(),
+                        "intervencion_texto": str(d.get("Intervención (Cannabis) como los autores la describen") or "").strip(),
+                        "desenlaces_texto": str(d.get("Desenlaces evaluados (no resultados) como los autores los describen") or "").strip(),
+                        "abstract": "",
+                    })
+                if estudios:
+                    return estudios
+        except Exception:
+            pass
+
+    # Respaldo desde JSON
     with open(_JSON_PATH, encoding="utf-8") as f:
         filas = json.load(f)
     estudios = []
